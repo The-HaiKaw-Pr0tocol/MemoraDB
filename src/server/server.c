@@ -18,7 +18,7 @@
  */
 
 #include "server.h"
-#include "log.h"
+#include "../utils/log.h"
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -109,10 +109,10 @@ int main() {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    printf("===============================================");
-    printf("  MemoraDB - Lightweight In-Memory Database    ");
-    printf("             Running on Port: 6379             ");
-    printf("===============================================");
+    printf("===============================================\n");
+    printf("  MemoraDB - Lightweight In-Memory Database    \n");
+    printf("             Running on Port: 6379             \n");
+    printf("===============================================\n");
     log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
 
     int server_fd, client_addr_len;
