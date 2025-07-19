@@ -3,7 +3,7 @@
  * MemoraDB - In-Memory Database System
  * =====================================================
  * 
- * File                      : client.c
+ * File                      : src/utils/client.c
  * Module                    : Client Utilities
  * Last Updating Author      : sch0penheimer
  * Last Update               : 07/19/2025
