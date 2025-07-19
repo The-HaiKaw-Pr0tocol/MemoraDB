@@ -21,8 +21,17 @@ void* handle_client(void* arg) {
     char buffer[1024];
     const char *response = "+PONG\r\n";
 
-    while (recv(client_fd, buffer, sizeof(buffer)-1, 0) > 0) {
-		//-- Ensure null-termination --//
+    ssize_t bytes_received;
+    while ((bytes_received = recv(client_fd, buffer, sizeof(buffer)-1, 0)) > 0) {
+        buffer[bytes_received] = '\0'; //-- Ensure null-termination --//
+        printf("[MemoraDB: INFO] Received command: %s", buffer);
+        send(client_fd, response, strlen(response), 0);
+    }
+    if (bytes_received == 0) {
+        printf("[MemoraDB: INFO] Client disconnected.\n");
+    } else if (bytes_received == -1) {
+        printf("[MemoraDB: ERROR] recv failed: %s\n", strerror(errno));
+    }
 		buffer[sizeof(buffer)-1] = '\0'; 
 		printf("[MemoraDB: INFO] Received command: %s", buffer);
         send(client_fd, response, strlen(response), 0);
