@@ -67,13 +67,13 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
     switch (cmd)
     {
     case CMD_PING:
-        dprintf(client_fd, "PONG\n");
+        dprintf(client_fd, "PONG\r\n");
         break;
     case CMD_ECHO:
         if(token_count < 2){
             dprintf(client_fd, "[MemoraDB: WARN] ECHO needs one argument\n");
         } else {
-            dprintf(client_fd, "%s\n", tokens[1]);
+            dprintf(client_fd, "%s\r\n", tokens[1]);
         }
         break;
     default:
