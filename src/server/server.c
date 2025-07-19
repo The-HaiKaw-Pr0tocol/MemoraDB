@@ -109,10 +109,10 @@ int main() {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    log_message(LOG_INFO, "===============================================");
-    log_message(LOG_INFO, "  MemoraDB - Lightweight In-Memory Database    ");
-    log_message(LOG_INFO, "             Running on Port: 6379             ");
-    log_message(LOG_INFO, "===============================================");
+    printf("===============================================");
+    printf("  MemoraDB - Lightweight In-Memory Database    ");
+    printf("             Running on Port: 6379             ");
+    printf("===============================================");
     log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
 
     int server_fd, client_addr_len;
