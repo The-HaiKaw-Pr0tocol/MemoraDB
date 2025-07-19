@@ -1,7 +1,7 @@
 /**
  * File : MemoraDB/src/main.c
  * Last Update Author : sch0penheimer
- * Last Update : 07/16/2025
+ * Last Update : 07/18/2025
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,7 @@ void* handle_client(void* arg) {
 }
 
 int main() {
-    // Disable output buffering
+    //-- Disable output buffering --//
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 	printf("===============================================\n");
@@ -86,7 +86,12 @@ int main() {
         *client_fd_ptr = client_fd;
         
         pthread_t thread;
-        pthread_create(&thread, NULL, handle_client, client_fd_ptr);
+        if (pthread_create(&thread, NULL, handle_client, client_fd_ptr) != 0) {
+            printf("[MemoraDB: ERROR] pthread_create failed: %s\n", strerror(errno));
+            close(client_fd);
+            free(client_fd_ptr);
+            continue;
+        }
         pthread_detach(thread);
     }
 

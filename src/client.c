@@ -1,7 +1,7 @@
 /**
  * File : MemoraDB/src/client.c
  * Last Update Author : sch0penheimer
- * Last Update : 07/17/2025
+ * Last Update : 07/18/2025
  * Description : Simple client to test the MemoraDB server
  */
 #include <stdio.h>
