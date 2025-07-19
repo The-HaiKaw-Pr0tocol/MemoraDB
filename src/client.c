@@ -88,8 +88,22 @@ int main(int argc, char *argv[]) {
             continue;
         }
         
-        strcat(command, "\r\n");
-        if (send(client_fd, command, strlen(command), 0) < 0) {
+        char * argv[BUFFER_SIZE];
+        int argc = 0;
+
+        char * token = strtok(command, " ");
+        while(token != NULL && argc < BUFFER_SIZE){
+            argv[argc++] = token;
+            token = strtok(NULL, " ");
+        }
+
+        int offset = 0;
+        offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "*%d\r\n", argc);
+        for(int i = 0; i < argc; i++){
+            offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "$%lu\r\n%s\r\n");
+        }
+
+        if (send(client_fd, buffer, offset, 0) < 0) {
             printf("[Client: ERROR] Failed to send command: %s\n", strerror(errno));
             break;
         }
