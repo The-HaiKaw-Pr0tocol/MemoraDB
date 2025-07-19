@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 
         //-- Display response --//
         buffer[bytes_received] = '\0';
-        printf("[Server Response]: %s", buffer);
+        printf("%s", buffer);
         
         // Remove the \r\n we added for sending
         command[strlen(command) - 2] = '\0';
