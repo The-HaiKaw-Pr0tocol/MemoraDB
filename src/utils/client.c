@@ -1,20 +1,23 @@
 /**
- * File : MemoraDB/src/client.c
- * Last Update Author : sch0penheimer
- * Last Update : 07/18/2025
- * Description : Simple client to test the MemoraDB server
+ * =====================================================
+ * MemoraDB - In-Memory Database System
+ * =====================================================
+ * 
+ * File                      : client.c
+ * Module                    : Client Utilities
+ * Last Updating Author      : sch0penheimer
+ * Last Update               : 07/19/2025
+ * Version                   : 1.0.0
+ * 
+ * Description:
+ *  Simple client to test the MemoraDB server.
+ * 
+ * 
+ * Copyright (c) 2025 MemoraDB Project
+ * =====================================================
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
 
-#define SERVER_PORT 6379
-#define BUFFER_SIZE 1024
+#include "client.h"
 
 int main(int argc, char *argv[]) {
     int client_fd;

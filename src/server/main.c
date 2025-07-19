@@ -1,27 +1,24 @@
 /**
- * File : MemoraDB/src/main.c
- * Last Update Author : kei077
- * Last Update : 07/19/2025
-*/
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <ctype.h>
+ * =====================================================
+ * MemoraDB - In-Memory Database System
+ * =====================================================
+ * 
+ * File                      : main.c
+ * Module                    : MemoraDB Server
+ * Last Updating Author      : sch0penheimer
+ * Last Update               : 07/19/2025
+ * Version                   : 1.0.0
+ * 
+ * Description:
+ *  Main MemoraDB server.
+ * 
+ * 
+ * Copyright (c) 2025 MemoraDB Project
+ * =====================================================
+ */
 
-#define BUFFER_SIZE 1024
-#define MAX_TOKENS 16
 
-enum Commands{
-    CMD_PING,
-    CMD_ECHO,
-    CMD_UNKNOWN,
-};
+#include "main.h"
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
