@@ -1,7 +1,7 @@
 /**
  * File : MemoraDB/src/main.c
- * Last Update Author : sch0penheimer
- * Last Update : 07/18/2025
+ * Last Update Author : kei077
+ * Last Update : 07/19/2025
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,32 +12,100 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <ctype.h>
+
+#define BUFFER_SIZE 1024
+#define MAX_TOKENS 16
+
+enum Commands{
+    CMD_PING,
+    CMD_ECHO,
+    CMD_UNKNOWN,
+};
+
+int parse_command(char * input, char * tokens[], int max_tokens){
+    int counter = 0;
+    char * cur = input;
+
+    if(*cur != '*') return -1;
+
+    int num_args = atoi(cur+1);
+    cur = strstr(cur, "\r\n");
+    if(!cur) return -1;
+
+    cur += 2;
+
+    for(int i = 0; i < num_args && counter < max_tokens; i++){
+        if(*cur != '$') return -1;
+
+        int len = atoi (cur+1);
+        cur = strstr(cur, "\r\n");
+        if (!cur) return -1;
+        cur += 2;
+        tokens[counter] = cur;
+        tokens[counter][len] = '\0';
+        cur += len + 2;
+        counter++;
+    }
+    return counter;
+}
+
+enum Commands identify_command(const char * cmd){
+    if(strcasecmp(cmd, "PING") == 0) return CMD_PING;
+    if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
+    return CMD_UNKNOWN;
+}
+
+void dispatch_command(int client_fd, char * tokens[], int token_count){
+    if(token_count == 0){
+        dprintf(client_fd, "Empty Command");
+        return;
+    }
+
+    enum Commands cmd = identify_command(tokens[0]);
+
+    switch (cmd)
+    {
+    case CMD_PING:
+        dprintf(client_fd, "+PONG\r\n");
+        break;
+    case CMD_ECHO:
+        if(token_count < 2){
+            dprintf(client_fd, "ECHO needs one argument\r\n");
+        } else {
+           dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(tokens[1]), tokens[1]);
+        }
+        break;
+    default:
+    dprintf(client_fd, "Unknown command '%s'\r\n", tokens[0]);
+        break;
+    }
+}
 
 //-- Thread Starting Function to handle client connections --//
-void* handle_client(void* arg) {
-    int client_fd = *(int*) arg;
+void *handle_client(void *arg) {
+    int client_fd = *(int*)arg;
     free(arg);
-    
-    char buffer[1024];
-    const char *response = "+PONG\r\n";
 
-    ssize_t bytes_received;
-    while ((bytes_received = recv(client_fd, buffer, sizeof(buffer)-1, 0)) > 0) {
-        buffer[bytes_received] = '\0'; //-- Ensure null-termination --//
-        printf("[MemoraDB: INFO] Received command: %s", buffer);
-        send(client_fd, response, strlen(response), 0);
-    }
-    if (bytes_received == 0) {
-        printf("[MemoraDB: INFO] Client disconnected.\n");
-    } else if (bytes_received == -1) {
-        printf("[MemoraDB: ERROR] recv failed: %s\n", strerror(errno));
-    }
-		buffer[sizeof(buffer)-1] = '\0'; 
-		printf("[MemoraDB: INFO] Received command: %s", buffer);
-        send(client_fd, response, strlen(response), 0);
-    }
+    char buffer[BUFFER_SIZE];
+    char *tokens[MAX_TOKENS];
     
+    while (1) {
+        ssize_t bytes = recv(client_fd, buffer, sizeof(buffer)-1, 0);
+        if (bytes <= 0) {
+            break;
+        }
+        buffer[bytes] = '\0';
+        int token_count = parse_command(buffer, tokens, MAX_TOKENS);
+        if(token_count < 1){
+            dprintf(client_fd, "Invalid RESP format\r\n");
+            continue;
+        }
+        dispatch_command(client_fd, tokens, token_count);
+    }
+
     close(client_fd);
+    printf("Client disconnected\n");
     return NULL;
 }
 
