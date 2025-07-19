@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
         int offset = 0;
         offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "*%d\r\n", argc);
         for(int i = 0; i < argc; i++){
-            offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "$%lu\r\n%s\r\n");
+            offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "$%lu\r\n%s\r\n", strlen(argv[i]), argv[i]);
         }
 
         if (send(client_fd, buffer, offset, 0) < 0) {
