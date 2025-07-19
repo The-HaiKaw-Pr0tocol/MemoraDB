@@ -3,9 +3,9 @@
  * MemoraDB - In-Memory Database System
  * =====================================================
  * 
- * File                      : main.c
+ * File                      : src/server/main.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : sch0penheimer
+ * Last Updating Author      : kei077
  * Last Update               : 07/19/2025
  * Version                   : 1.0.0
  * 
@@ -17,8 +17,8 @@
  * =====================================================
  */
 
-
-#include "main.h"
+#include "server.h"
+#include "../utils/log.h"
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -79,7 +79,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
     }
 }
 
-//-- Thread Starting Function to handle client connections --//
 void *handle_client(void *arg) {
     int client_fd = *(int*)arg;
     free(arg);
@@ -102,66 +101,65 @@ void *handle_client(void *arg) {
     }
 
     close(client_fd);
-    printf("Client disconnected\n");
+    log_message(LOG_INFO, "Client disconnected");
     return NULL;
 }
 
 int main() {
-    //-- Disable output buffering --//
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
-	printf("===============================================\n");
-	printf("   MemoraDB - Lightweight In-Memory Database   \n");
-	printf("             Running on Port: 6379            \n");
-	printf("===============================================\n");
 
-	printf("MemoraDB Server started. Awaiting connections...\n");
-    
+    printf("===============================================\n");
+    printf("  MemoraDB - Lightweight In-Memory Database    \n");
+    printf("             Running on Port: 6379             \n");
+    printf("===============================================\n");
+    log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
+
     int server_fd, client_addr_len;
     struct sockaddr_in client_addr;
-    
+
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
-        printf("[MemoraDB: ERROR] Socket creation failed: %s...\n", strerror(errno));
+        log_message(LOG_ERROR, "Socket creation failed: %s", strerror(errno));
         return 1;
     }
-	
-	printf("[MemoraDB: INFO] Socket created successfully.\n");
-    
-    struct sockaddr_in serv_addr = { .sin_family = AF_INET ,
-                                     .sin_port = htons(6379),
-                                     .sin_addr = { htonl(INADDR_ANY) },
-                                    };
-    
+    log_message(LOG_INFO, "Socket created successfully.");
+
+    struct sockaddr_in serv_addr = {
+        .sin_family = AF_INET,
+        .sin_port = htons(6379),
+        .sin_addr = { htonl(INADDR_ANY) },
+    };
+
     if (bind(server_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
-		printf("[MemoraDB: ERROR] Bind failed: %s\n", strerror(errno));
-        return 1;
-    }
-    
-    int connection_backlog = 5;
-    if (listen(server_fd, connection_backlog) != 0) {
-        printf("[MemoraDB: ERROR] Listen failed: %s \n", strerror(errno));
+        log_message(LOG_ERROR, "Bind failed: %s", strerror(errno));
         return 1;
     }
 
-    printf("[MemoraDB: INFO] Waiting for clients to connect...\n");
+    int connection_backlog = 5;
+    if (listen(server_fd, connection_backlog) != 0) {
+        log_message(LOG_ERROR, "Listen failed: %s", strerror(errno));
+        return 1;
+    }
+
+    log_message(LOG_INFO, "Waiting for clients to connect...");
     client_addr_len = sizeof(client_addr);
 
     while (1) {
         int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
         if (client_fd < 0) {
-            printf("[MemoraDB: ERROR] Accept failed: %s \n", strerror(errno));
+            log_message(LOG_ERROR, "Accept failed: %s", strerror(errno));
             continue;
         }
 
-        printf("[MemoraDB: INFO] Client connected\n");
+        log_message(LOG_INFO, "Client connected");
 
         int *client_fd_ptr = malloc(sizeof(int));
         *client_fd_ptr = client_fd;
-        
+
         pthread_t thread;
         if (pthread_create(&thread, NULL, handle_client, client_fd_ptr) != 0) {
-            printf("[MemoraDB: ERROR] pthread_create failed: %s\n", strerror(errno));
+            log_message(LOG_ERROR, "pthread_create failed: %s", strerror(errno));
             close(client_fd);
             free(client_fd_ptr);
             continue;
@@ -169,7 +167,7 @@ int main() {
         pthread_detach(thread);
     }
 
-	printf("[MemoraDB: INFO] Server shutting down...\n");
+    log_message(LOG_INFO, "Server shutting down...");
     close(server_fd);
     return 0;
 }
