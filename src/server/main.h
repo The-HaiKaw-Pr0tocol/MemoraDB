@@ -40,10 +40,10 @@
 #define RESP_TERMINATOR_LEN 2
 
 //-- Implemented Command Types for the RESP Protocol --//
-enum command_type {
-    COMMAND_PING,
-    COMMAND_ECHO,
-    COMMAND_UNKNOWN
+enum command_t {
+    CMD_PING,
+    CMD_ECHO,
+    CMD_UNKNOWN
 };
 
 extern volatile int server_running;
@@ -64,7 +64,7 @@ int parse_command(char *input, char *tokens[], int max_tokens);
  * @param cmd: Command string to identify
  * @return: Command type enum value
  */
-enum command_type identify_command(const char *cmd);
+enum command_t identify_command(const char *cmd);
 
 /**
  * Dispatch and execute command based on tokens
@@ -80,24 +80,5 @@ void dispatch_command(int client_fd, char *tokens[], int token_count);
  * @return: NULL on completion
  */
 void *handle_client(void *arg);
-
-/**
- * Initialize server socket and configuration
- * @return: Server socket file descriptor, -1 on error
- */
-int initialize_server(void);
-
-/**
- * Start server and accept client connections
- * @param server_fd: Server socket file descriptor
- * @return: 0 on success, -1 on error
- */
-int start_server(int server_fd);
-
-/**
- * Cleanup server resources
- * @param server_fd: Server socket file descriptor
- */
-void cleanup_server(int server_fd);
 
 #endif

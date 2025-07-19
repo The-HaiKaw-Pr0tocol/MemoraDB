@@ -47,7 +47,7 @@ int parse_command(char * input, char * tokens[], int max_tokens){
     return counter;
 }
 
-enum Commands identify_command(const char * cmd){
+enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "PING") == 0) return CMD_PING;
     if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
     return CMD_UNKNOWN;
@@ -59,7 +59,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         return;
     }
 
-    enum Commands cmd = identify_command(tokens[0]);
+    enum command_t cmd = identify_command(tokens[0]);
 
     switch (cmd)
     {
