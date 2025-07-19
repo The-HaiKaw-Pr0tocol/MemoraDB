@@ -55,7 +55,7 @@ enum command_t identify_command(const char * cmd){
 
 void dispatch_command(int client_fd, char * tokens[], int token_count){
     if(token_count == 0){
-        dprintf(client_fd, "Empty Command");
+        dprintf(client_fd, "Empty Command\n");
         return;
     }
 
@@ -64,17 +64,17 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
     switch (cmd)
     {
     case CMD_PING:
-        dprintf(client_fd, "+PONG\r\n");
+        dprintf(client_fd, "PONG\r\n");
         break;
     case CMD_ECHO:
         if(token_count < 2){
-            dprintf(client_fd, "ECHO needs one argument\r\n");
+            dprintf(client_fd, "[MemoraDB: WARN] ECHO needs one argument\n");
         } else {
-           dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(tokens[1]), tokens[1]);
+            dprintf(client_fd, "%s\r\n", tokens[1]);
         }
         break;
     default:
-    dprintf(client_fd, "Unknown command '%s'\r\n", tokens[0]);
+        dprintf(client_fd, "[MemoraDB: WARN] Unknown command '%s'\n", tokens[0]);
         break;
     }
 }
