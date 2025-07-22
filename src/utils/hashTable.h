@@ -5,7 +5,7 @@
  * 
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : sch0penheimer
+ * Last Updating Author      : kei077
  * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
@@ -26,6 +26,7 @@
 typedef struct Entry {
     char *key;
     char *value;
+    long long expiry; // 0 = no expiry, != 0 = expiry time in ms 
     struct Entry *next;
 } Entry;
 
@@ -52,7 +53,7 @@ unsigned int hash(const char *key);
  * This function sets up the hash table by allocating memory for each entry
  * and initializing them to NULL.
  */
-void set_value(const char *key, const char *value);
+void set_value(const char *key, const char *value, long long px);
 
 /**
  * @brief Set a key-value pair in the hash table.

@@ -5,7 +5,7 @@
  * 
  * File                      : src/server/main.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : sch0penheimer
+ * Last Updating Author      : kei077
  * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
@@ -77,10 +77,14 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         }
         break;
     case CMD_SET:
-        if(token_count < 3){
+        if (token_count < 3) {
             dprintf(client_fd, "[MemoraDB: WARN] SET needs key and value\r\n");
         } else {
-            set_value(tokens[1], tokens[2]);
+            long long px = 0;
+            if (token_count >= 5 && strcasecmp(tokens[3], "PX") == 0) {
+                px = atoll(tokens[4]);
+            }
+            set_value(tokens[1], tokens[2], px);
             dprintf(client_fd, "OK\r\n");
         }
         break;

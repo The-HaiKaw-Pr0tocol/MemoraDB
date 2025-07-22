@@ -5,7 +5,7 @@
  * 
  * File                      : src/utils/hashTable.c
  * Module                    : Hash Table
- * Last Updating Author      : sch0penheimer
+ * Last Updating Author      : kei077
  * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 /*
     * Hash Table Implementation
@@ -44,6 +45,12 @@ unsigned int hash(const char *key) {
 pthread_mutex_t hashtable_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 Entry *HASHTABLE[TABLE_SIZE] = {0};
+
+long long current_millis() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return ((long long)tv.tv_sec) * 1000 + tv.tv_usec / 1000;
+}
 
 void set_value(const char *key, const char *value) {
     pthread_mutex_lock(&hashtable_mutex);
@@ -71,18 +78,37 @@ void set_value(const char *key, const char *value) {
     * Get value by key from the hash table
     * Returns NULL if key does not exist
     */
-const char *get_value(const char *key) {
+   const char *get_value(const char *key) {
     pthread_mutex_lock(&hashtable_mutex);
     unsigned int idx = hash(key);
+    Entry *prev = NULL;
     Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            const char *result = entry->value;
-            pthread_mutex_unlock(&hashtable_mutex);
-            return result;
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                // Expired: remove it
+                if (prev)
+                    prev->next = entry->next;
+                else
+                    HASHTABLE[idx] = entry->next;
+
+                free(entry->key);
+                free(entry->value);
+                free(entry);
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            } else {
+                const char *result = entry->value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return result;
+            }
         }
+        prev = entry;
         entry = entry->next;
     }
+
     pthread_mutex_unlock(&hashtable_mutex);
     return NULL;
 }
