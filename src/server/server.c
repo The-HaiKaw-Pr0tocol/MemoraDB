@@ -55,7 +55,7 @@ enum command_t identify_command(const char * cmd){
 
 void dispatch_command(int client_fd, char * tokens[], int token_count){
     if(token_count == 0){
-        dprintf(client_fd, "Empty Command\n");
+        dprintf(client_fd, "[MemoraDB ERROR] Empty Command\n");
         return;
     }
 
