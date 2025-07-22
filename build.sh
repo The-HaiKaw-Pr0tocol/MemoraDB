@@ -1,23 +1,26 @@
 #!/bin/bash
 
+# === Ensure script runs from project root ===
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+cd "$PROJECT_ROOT"
+echo "[INFO] Working directory set to project root: $(pwd)"
+
 # === Prompt for contributor name ===
 AUTHOR=$(git config user.name)
 TODAY=$(date "+%m/%d/%Y")
-
 echo "[INFO] Detected username: $AUTHOR"
 
 # === Project configuration ===
 SERVER_OUT="server"
 CLIENT_OUT="client"
-COMMON_FILES="src/utils/log.c src/utils/hashTable.c"
+UTILS_FILES=$(find src/utils -name '*.c')
 PATTERN_AUTHOR="^( \* *Last Updating Author *: *).*"
 PATTERN_DATE="^( \* *Last Update *: *).*"
 
-# === Get list of modified source/header files ===
-modified_files=$(git diff --name-only HEAD | grep -E '\.c$|\.h$')
-if [[ -z "$modified_files" ]]; then
-    modified_files=$(git diff --name-only HEAD~1 | grep -E '\.c$|\.h$')
-fi
+# === Get list of modified/added/renamed source/header files ===
+modified_files=$(git status --porcelain | awk '{print $2}' | grep -E '\.c$|\.h$')
 
 # === Update headers in each modified file ===
 echo "[INFO] Updating file headers..."
@@ -31,7 +34,7 @@ done
 
 # === Compile the server ===
 echo "[INFO] Compiling server..."
-gcc -o "$SERVER_OUT" src/server/server.c $COMMON_FILES -lpthread
+gcc -o "$SERVER_OUT" src/server/server.c $UTILS_FILES -lpthread
 if [[ $? -eq 0 ]]; then
     echo "[SUCCESS] Server build complete. Output: $SERVER_OUT"
 else
@@ -40,7 +43,7 @@ fi
 
 # === Compile the client ===
 echo "[INFO] Compiling client..."
-gcc -o "$CLIENT_OUT" src/utils/client.c $COMMON_FILES -lpthread
+gcc -o "$CLIENT_OUT" src/client/client.c $UTILS_FILES -lpthread
 if [[ $? -eq 0 ]]; then
     echo "[SUCCESS] Client build complete. Output: $CLIENT_OUT"
 else
