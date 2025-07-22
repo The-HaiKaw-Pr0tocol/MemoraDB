@@ -5,7 +5,7 @@
  * 
  * File                      : src/server/main.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : kei077
+ * Last Updating Author      : sch0penheimer
  * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
@@ -19,6 +19,7 @@
 
 #include "server.h"
 #include "../utils/log.h"
+#include "../utils/hashTable.h"
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -50,6 +51,8 @@ int parse_command(char * input, char * tokens[], int max_tokens){
 enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "PING") == 0) return CMD_PING;
     if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
+    if(strcasecmp(cmd, "SET") == 0) return CMD_SET;
+    if(strcasecmp(cmd, "GET") == 0) return CMD_GET;
     return CMD_UNKNOWN;
 }
 
@@ -71,6 +74,25 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             dprintf(client_fd, "[MemoraDB: WARN] ECHO needs one argument\n");
         } else {
             dprintf(client_fd, "%s\r\n", tokens[1]);
+        }
+        break;
+    case CMD_SET:
+        if(token_count < 3){
+            dprintf(client_fd, "[MemoraDB: WARN] SET needs key and value\r\n");
+        } else {
+            set_value(tokens[1], tokens[2]);
+            dprintf(client_fd, "OK\r\n");
+        }
+        break;
+    case CMD_GET:
+        if(token_count < 2){
+            dprintf(client_fd, "[MemoraDB: WARN] GET needs key\r\n");
+        } else {
+            const char *value = get_value(tokens[1]);
+            if(value)
+                dprintf(client_fd, "%s\r\n", value);
+            else
+                dprintf(client_fd, "nil\r\n");
         }
         break;
     default:

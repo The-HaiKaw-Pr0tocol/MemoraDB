@@ -6,7 +6,7 @@
  * File                      : src/server/server.h
  * Module                    : MemoraDB Server Header
  * Last Updating Author      : sch0penheimer
- * Last Update               : 07/19/2025
+ * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -43,6 +43,8 @@
 enum command_t {
     CMD_PING,
     CMD_ECHO,
+    CMD_SET,
+    CMD_GET,
     CMD_UNKNOWN
 };
 
