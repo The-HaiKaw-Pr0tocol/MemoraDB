@@ -9,7 +9,7 @@ echo "[INFO] Detected username: $AUTHOR"
 # === Project configuration ===
 SERVER_OUT="server"
 CLIENT_OUT="client"
-COMMON_FILES="src/utils/log.c"
+COMMON_FILES="src/utils/log.c src/utils/hashTable.c"
 PATTERN_AUTHOR="^( \* *Last Updating Author *: *).*"
 PATTERN_DATE="^( \* *Last Update *: *).*"
 
