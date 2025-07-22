@@ -6,7 +6,7 @@
  * File                      : src/server/main.c
  * Module                    : MemoraDB Server
  * Last Updating Author      : kei077
- * Last Update               : 07/19/2025
+ * Last Update               : 07/22/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -55,7 +55,7 @@ enum command_t identify_command(const char * cmd){
 
 void dispatch_command(int client_fd, char * tokens[], int token_count){
     if(token_count == 0){
-        dprintf(client_fd, "Empty Command\n");
+        dprintf(client_fd, "[MemoraDB: ERROR] Empty Command\n");
         return;
     }
 
@@ -94,7 +94,7 @@ void *handle_client(void *arg) {
         buffer[bytes] = '\0';
         int token_count = parse_command(buffer, tokens, MAX_TOKENS);
         if(token_count < 1){
-            dprintf(client_fd, "Invalid RESP format\r\n");
+            dprintf(client_fd, "[MemoraDB: WARN] Invalid RESP format\r\n");
             continue;
         }
         dispatch_command(client_fd, tokens, token_count);
