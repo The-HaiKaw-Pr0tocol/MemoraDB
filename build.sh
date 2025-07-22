@@ -10,8 +10,8 @@ echo "[INFO] Detected username: $AUTHOR"
 SERVER_OUT="server"
 CLIENT_OUT="client"
 COMMON_FILES="src/utils/log.c"
-PATTERN_AUTHOR="^\( *Last Updating Author *: *\).*$"
-PATTERN_DATE="^\( *Last Update *: *\).*$"
+PATTERN_AUTHOR="^( \* *Last Updating Author *: *).*"
+PATTERN_DATE="^( \* *Last Update *: *).*"
 
 # === Get list of modified source/header files ===
 modified_files=$(git diff --name-only HEAD | grep -E '\.c$|\.h$')
@@ -24,8 +24,8 @@ echo "[INFO] Updating file headers..."
 for file in $modified_files; do
     if [[ -f "$file" ]]; then
         echo "→ Updating $file"
-        sed -i "s/$PATTERN_AUTHOR/\1$AUTHOR/" "$file"
-        sed -i "s/$PATTERN_DATE/\1$TODAY/" "$file"
+        sed -i -E "s#${PATTERN_AUTHOR}#\1${AUTHOR}#" "$file"
+        sed -i -E "s#${PATTERN_DATE}#\1${TODAY}#" "$file"
     fi
 done
 
