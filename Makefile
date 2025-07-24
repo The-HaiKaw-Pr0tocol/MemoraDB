@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -I./src
 LDFLAGS = -lpthread
 
 # === Source files ===
-FILES = src/utils/log.c src/utils/hashTable.c src/parser/parser.c src/utils/logo.c
+FILES = $(filter-out $(CLIENT_SRC) $(SERVER_SRC), $(wildcard src/**/*.c))
 CLIENT_SRC = src/client/client.c
 SERVER_SRC = src/server/server.c
 

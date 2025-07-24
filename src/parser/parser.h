@@ -5,7 +5,7 @@
  * 
  * File                      : src/parser/parser.h
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : Weasel
+ * Last Updating Author      : Haitam Bidiouane
  * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
@@ -34,6 +34,7 @@ enum command_t {
     CMD_ECHO,
     CMD_SET,
     CMD_GET,
+    CMD_RPUSH,
     CMD_UNKNOWN
 };
 
