@@ -5,7 +5,7 @@
  * 
  * File                      : src/utils/client.c
  * Module                    : Client Utilities
- * Last Updating Author      : sch0penheimer
+ * Last Updating Author      : Weasel
  * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 

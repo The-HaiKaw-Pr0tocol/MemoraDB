@@ -13,10 +13,6 @@ TODAY=$(date "+%m/%d/%Y")
 echo "[INFO] Detected username: $AUTHOR"
 
 # === Project configuration ===
-SERVER_OUT="server"
-CLIENT_OUT="client"
-UTILS_FILES=$(find src/utils -name '*.c')
-PARSER_FILES=$(find src/parser -name '*.c')
 PATTERN_AUTHOR="^( \* *Last Updating Author *: *).*"
 PATTERN_DATE="^( \* *Last Update *: *).*"
 
@@ -33,20 +29,14 @@ for file in $modified_files; do
     fi
 done
 
-# === Compile the server ===
-echo "[INFO] Compiling server..."
-gcc -o "$SERVER_OUT" src/server/server.c $UTILS_FILES $PARSER_FILES -lpthread
-if [[ $? -eq 0 ]]; then
-    echo "[SUCCESS] Server build complete. Output: $SERVER_OUT"
-else
-    echo "[ERROR] Server compilation failed."
-fi
-
-# === Compile the client ===
-echo "[INFO] Compiling client..."
-gcc -o "$CLIENT_OUT" src/client/client.c $UTILS_FILES -lpthread
-if [[ $? -eq 0 ]]; then
-    echo "[SUCCESS] Client build complete. Output: $CLIENT_OUT"
-else
-    echo "[ERROR] Client compilation failed."
-fi
+# === Ask if  ===
+read -p "Compile the project now? [y/N]: " answer
+case "$answer" in
+    [yY][eE][sS]|[yY])
+        echo "[INFO] Compiling project with Makefile..."
+        make && echo "[SUCCESS] Build finished." || echo "[ERROR] Build failed."
+        ;;
+    *)
+        echo "[INFO] Skipped compilation."
+        ;;
+esac
