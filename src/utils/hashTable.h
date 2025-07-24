@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : kei077
- * Last Update               : 07/22/2025
+ * Last Updating Author      : Haitam Bidiouane
+ * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -19,13 +19,25 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
+#include "list.h"
+
 /* ==================== HASHTABLE SIZE ==================== */
 #define TABLE_SIZE 1024
+
+/* ==================== Value Types ==================== */
+typedef enum {
+    VALUE_STRING,
+    VALUE_LIST
+} value_type_t;
 
 /* ==================== Key-Value Struct ==================== */
 typedef struct Entry {
     char *key;
-    char *value;
+    value_type_t type;
+    union {
+        char *string_value;
+        List *list_value;
+    } data;
     long long expiry; // 0 = no expiry, != 0 = expiry time in ms 
     struct Entry *next;
 } Entry;
@@ -48,23 +60,30 @@ extern Entry *HASHTABLE[TABLE_SIZE];
 unsigned int hash(const char *key);
 
 /**
- * @brief Initialize the hash table.
+ * @brief Set a string value in the hash table.
  * 
- * This function sets up the hash table by allocating memory for each entry
- * and initializing them to NULL.
+ * @param key The key to set.
+ * @param value The string value to associate with the key.
+ * @param px Expiry time in milliseconds (0 for no expiry).
  */
 void set_value(const char *key, const char *value, long long px);
 
 /**
- * @brief Set a key-value pair in the hash table.
+ * @brief Get a string value from the hash table.
  * 
- * This function inserts or updates a key-value pair in the hash table.
- * If the key already exists, it updates the value; otherwise, it creates
- * a new entry.
- * 
- * @param key The key to set.
- * @param value The value to associate with the key.
+ * @param key The key to retrieve.
+ * @return The string value, or NULL if not found or expired.
  */
 const char *get_value(const char *key);
+
+/**
+ * @brief Push values to the right of a list stored at key.
+ * 
+ * @param key The key of the list.
+ * @param values Array of values to push.
+ * @param count Number of values to push.
+ * @return The new length of the list, or -1 if key holds non-list value.
+ */
+int rpush_list(const char *key, const char *values[], int count);
 
 #endif // HASHTABLE_H

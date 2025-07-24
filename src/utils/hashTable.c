@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.c
  * Module                    : Hash Table
- * Last Updating Author      : Kei077
- * Last Update               : 07/22/2025
+ * Last Updating Author      : Haitam Bidiouane
+ * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -56,8 +56,15 @@ void set_value(const char *key, const char *value, long long px) {
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            free(entry->value);
-            entry->value = strdup(value);
+            // Free old value based on type
+            if (entry->type == VALUE_STRING) {
+                free(entry->data.string_value);
+            } else if (entry->type == VALUE_LIST) {
+                list_free(entry->data.list_value);
+            }
+            
+            entry->type = VALUE_STRING;
+            entry->data.string_value = strdup(value);
             entry->expiry = expiry;
             pthread_mutex_unlock(&hashtable_mutex);
             return;
@@ -68,7 +75,8 @@ void set_value(const char *key, const char *value, long long px) {
     // New entry
     entry = malloc(sizeof(Entry));
     entry->key = strdup(key);
-    entry->value = strdup(value);
+    entry->type = VALUE_STRING;
+    entry->data.string_value = strdup(value);
     entry->expiry = expiry;
     entry->next = HASHTABLE[idx];
     HASHTABLE[idx] = entry;
@@ -92,14 +100,22 @@ const char *get_value(const char *key) {
                     HASHTABLE[idx] = entry->next;
 
                 free(entry->key);
-                free(entry->value);
+                if (entry->type == VALUE_STRING) {
+                    free(entry->data.string_value);
+                } else if (entry->type == VALUE_LIST) {
+                    list_free(entry->data.list_value);
+                }
                 free(entry);
                 pthread_mutex_unlock(&hashtable_mutex);
                 return NULL;
             } else {
-                const char *result = entry->value;
+                if (entry->type == VALUE_STRING) {
+                    const char *result = entry->data.string_value;
+                    pthread_mutex_unlock(&hashtable_mutex);
+                    return result;
+                }
                 pthread_mutex_unlock(&hashtable_mutex);
-                return result;
+                return NULL; // Not a string
             }
         }
         prev = entry;
@@ -108,4 +124,71 @@ const char *get_value(const char *key) {
 
     pthread_mutex_unlock(&hashtable_mutex);
     return NULL;
+}
+
+int rpush_list(const char *key, const char *values[], int count) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *prev = NULL;
+    Entry *entry = HASHTABLE[idx];
+
+    // Find existing entry
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            // Check if expired
+            long long now = current_millis();
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                // Remove expired entry
+                if (prev)
+                    prev->next = entry->next;
+                else
+                    HASHTABLE[idx] = entry->next;
+
+                free(entry->key);
+                if (entry->type == VALUE_STRING) {
+                    free(entry->data.string_value);
+                } else if (entry->type == VALUE_LIST) {
+                    list_free(entry->data.list_value);
+                }
+                free(entry);
+                pthread_mutex_unlock(&hashtable_mutex);
+                break; // Exit to create new entry
+            }
+            
+            // Check if it's a list
+            if (entry->type != VALUE_LIST) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return -1; // Wrong type
+            }
+            
+            // Push values to existing list
+            for (int i = 0; i < count; i++) {
+                list_rpush(entry->data.list_value, values[i]);
+            }
+            
+            int result = list_length(entry->data.list_value);
+            pthread_mutex_unlock(&hashtable_mutex);
+            return result;
+        }
+        prev = entry;
+        entry = entry->next;
+    }
+
+    // Create new list entry
+    entry = malloc(sizeof(Entry));
+    entry->key = strdup(key);
+    entry->type = VALUE_LIST;
+    entry->data.list_value = list_create();
+    entry->expiry = 0; // Lists don't expire by default
+    entry->next = HASHTABLE[idx];
+    HASHTABLE[idx] = entry;
+
+    // Push all values
+    for (int i = 0; i < count; i++) {
+        list_rpush(entry->data.list_value, values[i]);
+    }
+
+    int result = list_length(entry->data.list_value);
+    pthread_mutex_unlock(&hashtable_mutex);
+    return result;
 }

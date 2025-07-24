@@ -5,7 +5,7 @@
  * 
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : Weasel
+ * Last Updating Author      : Haitam Bidiouane
  * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
@@ -18,8 +18,10 @@
  * =====================================================
  */
 
+#define _GNU_SOURCE
 #include "parser.h"
 #include "../utils/hashTable.h"
+#include <stdio.h>
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -53,6 +55,7 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
     if(strcasecmp(cmd, "SET") == 0) return CMD_SET;
     if(strcasecmp(cmd, "GET") == 0) return CMD_GET;
+    if(strcasecmp(cmd, "RPUSH") == 0) return CMD_RPUSH;
     return CMD_UNKNOWN;
 }
 
@@ -97,6 +100,21 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 dprintf(client_fd, "%s\r\n", value);
             else
                 dprintf(client_fd, "nil\r\n");
+        }
+        break;
+    case CMD_RPUSH:
+        if (token_count < 3) {
+            dprintf(client_fd, "[MemoraDB: WARN] RPUSH needs key and at least one value\r\n");
+        } else {
+            const char **values = (const char**)(tokens + 2);
+            int value_count = token_count - 2;
+            int result = rpush_list(tokens[1], values, value_count);
+            
+            if (result == -1) {
+                dprintf(client_fd, "[MemoraDB: ERROR] Key holds a value that is not a list\r\n");
+            } else {
+                dprintf(client_fd, "%d\r\n", result);
+            }
         }
         break;
     default:
