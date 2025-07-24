@@ -1,4 +1,3 @@
-> Last Updated: 16th July, 2025
 # MemoraDB
 
 MemoraDB is a lightweight, high-performance in-memory database project designed for ultra-fast memory based key-value storage.
