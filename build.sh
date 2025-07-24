@@ -29,6 +29,14 @@ for file in $modified_files; do
     fi
 done
 
-# === Run make ===
-echo "[INFO] Compiling project with Makefile..."
-make && echo "[SUCCESS] Build finished." || echo "[ERROR] Build failed."
+# === Ask if  ===
+read -p "Compile the project now? [y/N]: " answer
+case "$answer" in
+    [yY][eE][sS]|[yY])
+        echo "[INFO] Compiling project with Makefile..."
+        make && echo "[SUCCESS] Build finished." || echo "[ERROR] Build failed."
+        ;;
+    *)
+        echo "[INFO] Skipped compilation."
+        ;;
+esac
