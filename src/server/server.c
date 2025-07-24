@@ -5,7 +5,7 @@
  * 
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : Haitam Bidiouane
+ * Last Updating Author      : sch0penheimer
  * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
@@ -21,6 +21,7 @@
 #include "../utils/log.h"
 #include "../utils/hashTable.h"
 #include "../parser/parser.h"
+#include "../utils/logo.h"
 
 void *handle_client(void *arg) {
     int client_fd = *(int*)arg;
@@ -52,10 +53,9 @@ int main() {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    printf("===============================================\n");
-    printf("  MemoraDB - Lightweight In-Memory Database    \n");
-    printf("             Running on Port: 6379             \n");
-    printf("===============================================\n");
+    display_memoradb_logo();
+    printf("\n");
+
     log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
 
     int server_fd, client_addr_len;
