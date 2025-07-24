@@ -16,6 +16,7 @@ echo "[INFO] Detected username: $AUTHOR"
 SERVER_OUT="server"
 CLIENT_OUT="client"
 UTILS_FILES=$(find src/utils -name '*.c')
+PARSER_FILES=$(find src/parser -name '*.c')
 PATTERN_AUTHOR="^( \* *Last Updating Author *: *).*"
 PATTERN_DATE="^( \* *Last Update *: *).*"
 
@@ -34,7 +35,7 @@ done
 
 # === Compile the server ===
 echo "[INFO] Compiling server..."
-gcc -o "$SERVER_OUT" src/server/server.c $UTILS_FILES -lpthread
+gcc -o "$SERVER_OUT" src/server/server.c $UTILS_FILES $PARSER_FILES -lpthread
 if [[ $? -eq 0 ]]; then
     echo "[SUCCESS] Server build complete. Output: $SERVER_OUT"
 else
