@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -I./src
 LDFLAGS = -lpthread
 
 # === Source files ===
-UTILS = src/utils/log.c src/utils/hashTable.c
+FILES = src/utils/log.c src/utils/hashTable.c src/parser/parser.c src/utils/logo.c
 CLIENT_SRC = src/client/client.c
 SERVER_SRC = src/server/server.c
 
@@ -16,10 +16,10 @@ SERVER_OUT = server
 
 all: $(CLIENT_OUT) $(SERVER_OUT)
 
-$(CLIENT_OUT): $(CLIENT_SRC) $(UTILS)
+$(CLIENT_OUT): $(CLIENT_SRC) $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(SERVER_OUT): $(SERVER_SRC) $(UTILS)
+$(SERVER_OUT): $(SERVER_SRC) $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

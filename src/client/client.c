@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/client.c
  * Module                    : Client Utilities
- * Last Updating Author      : sch0penheimer
- * Last Update               : 07/19/2025
+ * Last Updating Author      : Weasel
+ * Last Update               : 07/24/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -18,6 +18,7 @@
  */
 
 #include "client.h"
+#include "../utils/logo.h"
 
 int main(int argc, char *argv[]) {
     int client_fd;
@@ -30,6 +31,9 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         server_ip = argv[1];
     }
+    
+    display_memoradb_logo();
+    printf("\n\n");
     
     printf("===============================================\n");
     printf("     MemoraDB Client - Testing Interface      \n");
@@ -64,8 +68,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("[Client: INFO] Connected to MemoraDB server\n\n");
-    printf("[Client: INFO] Type commands (or 'quit' to exit):\n");
-    printf("Commands: PING to ping the server, EXIT or quit to close the connection\n");
+    printf("[Client: INFO] Type commands (EXIT or QUIT to close the connection):\n");
     printf("=======================================================================\n");
 
     //-- Interactive command loop --//
@@ -81,7 +84,7 @@ int main(int argc, char *argv[]) {
         //-- Remove newline --//
         command[strcspn(command, "\n")] = 0;
         
-        if (strcmp(command, "quit") == 0 || strcmp(command, "exit") == 0) {
+        if (strcasecmp(command, "quit") == 0 || strcasecmp(command, "exit") == 0) {
             printf("[Client: INFO] Disconnecting...\n");
             break;
         }
