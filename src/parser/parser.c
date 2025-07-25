@@ -67,7 +67,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
     switch (cmd)
     {
     case CMD_PING:
-        dprintf(client_fd, "PONG\r\n");
+        dprintf(client_fd, "+PONG\r\n");
         break;
     case CMD_ECHO:
         if(token_count < 2){
