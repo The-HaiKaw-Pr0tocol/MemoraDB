@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/client.c
  * Module                    : Client Utilities
- * Last Updating Author      : Weasel
- * Last Update               : 07/24/2025
+ * Last Updating Author      : Haitam Bidiouane
+ * Last Update               : 07/26/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -18,6 +18,7 @@
  */
 
 #include "client.h"
+#include "resp_parser.h"
 #include "../utils/logo.h"
 
 int main(int argc, char *argv[]) {
@@ -128,7 +129,20 @@ int main(int argc, char *argv[]) {
 
         //-- Display response --//
         buffer[bytes_received] = '\0';
-        printf("%s", buffer);
+        
+        // Check if response starts with RESP protocol markers
+        if (buffer[0] == '+' || buffer[0] == '-' || buffer[0] == ':' || 
+            buffer[0] == '$' || buffer[0] == '*') {
+            // Parse and display RESP response
+            int parsed = parse_and_display_resp(buffer);
+            if (parsed == -1) {
+                printf("Error parsing RESP response\n");
+                printf("Raw response: %s", buffer);
+            }
+        } else {
+            // Display raw response (for MemoraDB logging messages)
+            printf("%s", buffer);
+        }
         
         // Remove the \r\n we added for sending
         command[strlen(command) - 2] = '\0';
