@@ -6,7 +6,7 @@
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
  * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/24/2025
+ * Last Update               : 07/26/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -70,13 +70,13 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
     switch (cmd)
     {
     case CMD_PING:
-        dprintf(client_fd, "PONG\r\n");
+        dprintf(client_fd, "+PONG\r\n");
         break;
     case CMD_ECHO:
         if(token_count < 2){
             dprintf(client_fd, "[MemoraDB: WARN] ECHO needs one argument\n");
         } else {
-            dprintf(client_fd, "%s\r\n", tokens[1]);
+            dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(tokens[1]), tokens[1]);
         }
         break;
     case CMD_SET:
@@ -88,7 +88,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 px = atoll(tokens[4]);
             }
             set_value(tokens[1], tokens[2], px);
-            dprintf(client_fd, "OK\r\n");
+            dprintf(client_fd, "+OK\r\n");
         }
         break;
     case CMD_GET:
@@ -97,9 +97,9 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         } else {
             const char *value = get_value(tokens[1]);
             if(value)
-                dprintf(client_fd, "%s\r\n", value);
+                dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(value), value);
             else
-                dprintf(client_fd, "nil\r\n");
+                dprintf(client_fd, "$-1\r\n");
         }
         break;
     case CMD_RPUSH:
@@ -113,10 +113,11 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             if (result == -1) {
                 dprintf(client_fd, "[MemoraDB: ERROR] Key holds a value that is not a list\r\n");
             } else {
-                dprintf(client_fd, "%d\r\n", result);
+                dprintf(client_fd, ":%d\r\n", result);
             }
         }
         break;
+    break;
     default:
         dprintf(client_fd, "[MemoraDB: WARN] Unknown command '%s'\n", tokens[0]);
         break;
