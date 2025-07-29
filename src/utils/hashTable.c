@@ -238,3 +238,30 @@ List *get_or_create_list(const char *key) {
     pthread_mutex_unlock(&hashtable_mutex);
     return list;
 }
+
+List *get_list_if_exists(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+            if (entry->type == VALUE_LIST) {
+                List *list = entry->data.list_value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return list;
+            } else {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+        }
+        entry = entry->next;
+    }
+    pthread_mutex_unlock(&hashtable_mutex);
+    return NULL;
+}

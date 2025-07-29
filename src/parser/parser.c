@@ -110,15 +110,21 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         if (token_count < 3) {
             dprintf(client_fd, "[MemoraDB: WARN] RPUSH needs key and at least one value\r\n");
         } else {
-            const char **values = (const char**)(tokens + 2);
-            int value_count = token_count - 2;
-            int result = rpush_list(tokens[1], values, value_count);
-            
-            if (result == -1) {
-                dprintf(client_fd, "[MemoraDB: ERROR] Key holds a value that is not a list\r\n");
-            } else {
-                dprintf(client_fd, ":%d\r\n", result);
+            List *list = get_or_create_list(tokens[1]);
+            if (!list) {
+                dprintf(client_fd, "[MemoraDB: ERROR] could not create list\r\n");
+                break;
             }
+
+            int total_elements = 0;
+            for (int i = 2; i < token_count; i++) {
+                size_t new_len = list_rpush(list, tokens[i]);
+                if (new_len > total_elements) {
+                    total_elements = new_len;
+                }
+            }
+
+            dprintf(client_fd, ":%d\r\n", total_elements);
         }
         break;
     case CMD_LPUSH:
@@ -149,13 +155,15 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             int start = atoi(tokens[2]);
             int end = atoi(tokens[3]);
             
-            List *list = get_or_create_list(tokens[1]);
-            int result_count;
-            char **elements = list_range(list, start, end, &result_count);
+            List *list = get_list_if_exists(tokens[1]);
+            int result_count = 0;
+            char **elements = NULL;
+            if (list) {
+                elements = list_range(list, start, end, &result_count);
+            }
             
             if (elements) {
                 dprintf(client_fd, "*%d\r\n", result_count);
-                
                 for (int i = 0; i < result_count; i++) {
                     dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(elements[i]), elements[i]);
                     free(elements[i]);
