@@ -124,6 +124,16 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
 
+            // --- DEBUG SECTION START ---
+            printf("DEBUG: RPUSH list '%s' contents: ", tokens[1]);
+            ListNode *node = list->head;
+            while (node) {
+                printf("[%s] ", node->value);
+                node = node->next;
+            }
+            printf("\n");
+            // --- DEBUG SECTION END ---
+
             dprintf(client_fd, ":%d\r\n", total_elements);
         }
         break;
@@ -138,13 +148,23 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             }
 
             int total_elements = 0;
-            for (int i = token_count - 1; i >= 2; i--) {
+            for (int i = 2 ; i < token_count ; i++) {
                 size_t new_len = list_lpush(list, tokens[i]);
                 if (new_len > total_elements) {
                     total_elements = new_len;
                 }
             }
-            
+
+            // --- DEBUG SECTION START ---
+            printf("DEBUG: LPUSH list '%s' contents: ", tokens[1]);
+            ListNode *node = list->head;
+            while (node) {
+                printf("[%s] ", node->value);
+                node = node->next;
+            }
+            printf("\n");
+            // --- DEBUG SECTION END ---
+
             dprintf(client_fd, ":%d\r\n", total_elements);
         }
         break;
