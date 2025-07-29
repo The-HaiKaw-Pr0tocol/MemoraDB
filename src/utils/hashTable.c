@@ -192,3 +192,29 @@ int rpush_list(const char *key, const char *values[], int count) {
     pthread_mutex_unlock(&hashtable_mutex);
     return result;
 }
+
+List *get_or_create_list(const char *key) {
+    if (!key) return NULL;
+
+    void *value = get_value(key);
+    if (value) {
+        if (is_list(value)) {
+            return (List *)value;
+        }
+        return NULL; 
+    }
+
+    List *list = list_create();
+    if (!list) return NULL;
+
+    if (!set_value(key, list, 0)) {
+        list_free(list);
+        return NULL;
+    }
+
+    return list;
+}
+
+static bool is_list(void *value) {
+    return value != NULL;
+}

@@ -65,4 +65,14 @@ size_t list_length(const List *list);
  */
 void list_free(List *list);
 
+/**
+ * Get a range of elements from the list
+ * @param list The list to get elements from
+ * @param start Starting index (can be negative)
+ * @param end Ending index (can be negative)
+ * @param count Pointer to store the number of elements returned
+ * @return Array of strings that must be freed by caller, NULL on error
+ */
+char **list_range(List *list, int start, int end, int *count);
+
 #endif // LIST_H
