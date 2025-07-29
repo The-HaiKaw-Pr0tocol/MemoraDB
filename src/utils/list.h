@@ -51,6 +51,15 @@ List *list_create(void);
 size_t list_rpush(List *list, const char *value);
 
 /**
+ * @brief Push a value to the left (head) of the list.
+ * 
+ * @param list The list to push to.
+ * @param value The value to push.
+ * @return The new length of the list.
+ */
+size_t list_lpush(List *list, const char *value);
+
+/**
  * @brief Get the length of the list.
  * 
  * @param list The list to get the length of.

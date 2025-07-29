@@ -22,6 +22,7 @@
 #include "parser.h"
 #include "../utils/hashTable.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
