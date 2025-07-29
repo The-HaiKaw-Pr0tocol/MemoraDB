@@ -6,7 +6,7 @@
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
  * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/26/2025
+ * Last Update               : 07/29/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -124,16 +124,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
 
-            // --- DEBUG SECTION START ---
-            printf("DEBUG: RPUSH list '%s' contents: ", tokens[1]);
-            ListNode *node = list->head;
-            while (node) {
-                printf("[%s] ", node->value);
-                node = node->next;
-            }
-            printf("\n");
-            // --- DEBUG SECTION END ---
-
             dprintf(client_fd, ":%d\r\n", total_elements);
         }
         break;
@@ -154,16 +144,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                     total_elements = new_len;
                 }
             }
-
-            // --- DEBUG SECTION START ---
-            printf("DEBUG: LPUSH list '%s' contents: ", tokens[1]);
-            ListNode *node = list->head;
-            while (node) {
-                printf("[%s] ", node->value);
-                node = node->next;
-            }
-            printf("\n");
-            // --- DEBUG SECTION END ---
 
             dprintf(client_fd, ":%d\r\n", total_elements);
         }
@@ -192,6 +172,18 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             } else {
                 dprintf(client_fd, "*0\r\n");
             }
+        }
+        break;
+    case CMD_LLEN:
+        if (token_count < 2) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LLEN'\r\n");
+        } else {
+            List *list = get_list_if_exists(tokens[1]);
+            int length = 0;
+            if (list) {
+                length = list_length(list);
+            }
+            dprintf(client_fd, ":%d\r\n", length);
         }
         break;
     default:
