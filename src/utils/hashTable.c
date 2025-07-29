@@ -192,3 +192,76 @@ int rpush_list(const char *key, const char *values[], int count) {
     pthread_mutex_unlock(&hashtable_mutex);
     return result;
 }
+
+List *get_or_create_list(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
+    // Search for existing entry
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            // Check expiry
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                // Remove expired entry
+                // (same logic as elsewhere)
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+            if (entry->type == VALUE_LIST) {
+                List *list = entry->data.list_value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return list;
+            } else {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+        }
+        entry = entry->next;
+    }
+
+    // Not found, create new list entry
+    Entry *new_entry = malloc(sizeof(Entry));
+    if (!new_entry) {
+        pthread_mutex_unlock(&hashtable_mutex);
+        return NULL;
+    }
+    new_entry->key = strdup(key);
+    new_entry->type = VALUE_LIST;
+    new_entry->data.list_value = list_create();
+    new_entry->expiry = 0;
+    new_entry->next = HASHTABLE[idx];
+    HASHTABLE[idx] = new_entry;
+
+    List *list = new_entry->data.list_value;
+    pthread_mutex_unlock(&hashtable_mutex);
+    return list;
+}
+
+List *get_list_if_exists(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+            if (entry->type == VALUE_LIST) {
+                List *list = entry->data.list_value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return list;
+            } else {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+        }
+        entry = entry->next;
+    }
+    pthread_mutex_unlock(&hashtable_mutex);
+    return NULL;
+}

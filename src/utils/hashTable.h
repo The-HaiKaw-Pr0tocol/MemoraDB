@@ -86,4 +86,18 @@ const char *get_value(const char *key);
  */
 int rpush_list(const char *key, const char *values[], int count);
 
+/**
+ * Get an existing list or create a new one
+ * @param key The key to lookup or create
+ * @return Pointer to the list, NULL on error
+ */
+List *get_or_create_list(const char *key);
+
+/**
+ * Get the list at key if it exists and is a list.
+ * @param key The key to lookup
+ * @return Pointer to the list, or NULL if not found or not a list
+ */
+List *get_list_if_exists(const char *key);
+
 #endif // HASHTABLE_H

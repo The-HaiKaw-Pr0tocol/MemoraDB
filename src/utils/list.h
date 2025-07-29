@@ -51,6 +51,15 @@ List *list_create(void);
 size_t list_rpush(List *list, const char *value);
 
 /**
+ * @brief Push a value to the left (head) of the list.
+ * 
+ * @param list The list to push to.
+ * @param value The value to push.
+ * @return The new length of the list.
+ */
+size_t list_lpush(List *list, const char *value);
+
+/**
  * @brief Get the length of the list.
  * 
  * @param list The list to get the length of.
@@ -64,5 +73,15 @@ size_t list_length(const List *list);
  * @param list The list to free.
  */
 void list_free(List *list);
+
+/**
+ * Get a range of elements from the list
+ * @param list The list to get elements from
+ * @param start Starting index (can be negative)
+ * @param end Ending index (can be negative)
+ * @param count Pointer to store the number of elements returned
+ * @return Array of strings that must be freed by caller, NULL on error
+ */
+char **list_range(List *list, int start, int end, int *count);
 
 #endif // LIST_H

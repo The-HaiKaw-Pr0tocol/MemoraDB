@@ -22,6 +22,7 @@
 #include "parser.h"
 #include "../utils/hashTable.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -56,6 +57,9 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "SET") == 0) return CMD_SET;
     if(strcasecmp(cmd, "GET") == 0) return CMD_GET;
     if(strcasecmp(cmd, "RPUSH") == 0) return CMD_RPUSH;
+    if(strcasecmp(cmd, "LRANGE") == 0) return CMD_LRANGE;
+    if(strcasecmp(cmd, "LPUSH") == 0) return CMD_LPUSH;
+    if(strcasecmp(cmd,"LLEN") == 0) return CMD_LLEN;
     return CMD_UNKNOWN;
 }
 
@@ -106,18 +110,90 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         if (token_count < 3) {
             dprintf(client_fd, "[MemoraDB: WARN] RPUSH needs key and at least one value\r\n");
         } else {
-            const char **values = (const char**)(tokens + 2);
-            int value_count = token_count - 2;
-            int result = rpush_list(tokens[1], values, value_count);
+            List *list = get_or_create_list(tokens[1]);
+            if (!list) {
+                dprintf(client_fd, "[MemoraDB: ERROR] could not create list\r\n");
+                break;
+            }
+
+            int total_elements = 0;
+            for (int i = 2; i < token_count; i++) {
+                size_t new_len = list_rpush(list, tokens[i]);
+                if (new_len > total_elements) {
+                    total_elements = new_len;
+                }
+            }
+
+            // --- DEBUG SECTION START ---
+            printf("DEBUG: RPUSH list '%s' contents: ", tokens[1]);
+            ListNode *node = list->head;
+            while (node) {
+                printf("[%s] ", node->value);
+                node = node->next;
+            }
+            printf("\n");
+            // --- DEBUG SECTION END ---
+
+            dprintf(client_fd, ":%d\r\n", total_elements);
+        }
+        break;
+    case CMD_LPUSH:
+        if (token_count < 3) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LPUSH'\r\n");
+        } else {
+            List *list = get_or_create_list(tokens[1]);
+            if (!list) {
+                dprintf(client_fd, "[MemoraDB: ERROR] could not create list\r\n");
+                break;
+            }
+
+            int total_elements = 0;
+            for (int i = 2 ; i < token_count ; i++) {
+                size_t new_len = list_lpush(list, tokens[i]);
+                if (new_len > total_elements) {
+                    total_elements = new_len;
+                }
+            }
+
+            // --- DEBUG SECTION START ---
+            printf("DEBUG: LPUSH list '%s' contents: ", tokens[1]);
+            ListNode *node = list->head;
+            while (node) {
+                printf("[%s] ", node->value);
+                node = node->next;
+            }
+            printf("\n");
+            // --- DEBUG SECTION END ---
+
+            dprintf(client_fd, ":%d\r\n", total_elements);
+        }
+        break;
+    case CMD_LRANGE:
+        if (token_count < 4) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LRANGE'\r\n");
+        } else {
+            int start = atoi(tokens[2]);
+            int end = atoi(tokens[3]);
             
-            if (result == -1) {
-                dprintf(client_fd, "[MemoraDB: ERROR] Key holds a value that is not a list\r\n");
+            List *list = get_list_if_exists(tokens[1]);
+            int result_count = 0;
+            char **elements = NULL;
+            if (list) {
+                elements = list_range(list, start, end, &result_count);
+            }
+            
+            if (elements) {
+                dprintf(client_fd, "*%d\r\n", result_count);
+                for (int i = 0; i < result_count; i++) {
+                    dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(elements[i]), elements[i]);
+                    free(elements[i]);
+                }
+                free(elements);
             } else {
-                dprintf(client_fd, ":%d\r\n", result);
+                dprintf(client_fd, "*0\r\n");
             }
         }
         break;
-    break;
     default:
         dprintf(client_fd, "[MemoraDB: WARN] Unknown command '%s'\n", tokens[0]);
         break;
