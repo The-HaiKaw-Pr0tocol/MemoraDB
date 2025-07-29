@@ -6,7 +6,7 @@
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
  * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/24/2025
+ * Last Update               : 07/29/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -75,16 +75,6 @@ void set_value(const char *key, const char *value, long long px);
  * @return The string value, or NULL if not found or expired.
  */
 const char *get_value(const char *key);
-
-/**
- * @brief Push values to the right of a list stored at key.
- * 
- * @param key The key of the list.
- * @param values Array of values to push.
- * @param count Number of values to push.
- * @return The new length of the list, or -1 if key holds non-list value.
- */
-int rpush_list(const char *key, const char *values[], int count);
 
 /**
  * Get an existing list or create a new one
