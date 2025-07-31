@@ -56,6 +56,7 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
     if(strcasecmp(cmd, "SET") == 0) return CMD_SET;
     if(strcasecmp(cmd, "GET") == 0) return CMD_GET;
+    if(strcasecmp(cmd, "DEL") == 0) return CMD_DEL;
     if(strcasecmp(cmd, "RPUSH") == 0) return CMD_RPUSH;
     if(strcasecmp(cmd, "LRANGE") == 0) return CMD_LRANGE;
     if(strcasecmp(cmd, "LPUSH") == 0) return CMD_LPUSH;
@@ -184,6 +185,20 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 length = list_length(list);
             }
             dprintf(client_fd, ":%d\r\n", length);
+        }
+        break;
+    case CMD_DEL:
+        if (token_count < 2) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'DEL'\r\n");
+        } else {
+            int deleted_count = 0;
+            /* delete each key provided */
+            for (int i = 1; i < token_count; i++) {
+                if (delete_key(tokens[i])) {
+                    deleted_count++;
+                }
+            }
+            dprintf(client_fd, ":%d\r\n", deleted_count);
         }
         break;
     default:

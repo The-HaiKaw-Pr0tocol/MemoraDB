@@ -90,4 +90,12 @@ List *get_or_create_list(const char *key);
  */
 List *get_list_if_exists(const char *key);
 
+/**
+ * Delete a key from the hash table, removing both string and list types.
+ * Properly frees memory for both string values and list structures.
+ * @param key The key to delete
+ * @return 1 if the key was deleted, 0 if not found
+ */
+int delete_key(const char *key);
+
 #endif // HASHTABLE_H
