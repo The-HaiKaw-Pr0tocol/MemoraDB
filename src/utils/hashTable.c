@@ -199,6 +199,10 @@ List *get_list_if_exists(const char *key) {
     return NULL;
 }
 
+/**
+ * Delete a key from the hash table, handling both string and list types.
+ * Removes the entry from the linked list and frees all associated memory.
+ */
 int delete_key(const char *key) {
     pthread_mutex_lock(&hashtable_mutex);
     unsigned int idx = hash(key);
@@ -207,13 +211,11 @@ int delete_key(const char *key) {
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            /* remove entry from linked list */
             if (prev)
                 prev->next = entry->next;
             else
                 HASHTABLE[idx] = entry->next;
 
-            /* free memory */
             free(entry->key);
             if (entry->type == VALUE_STRING) {
                 free(entry->data.string_value);
