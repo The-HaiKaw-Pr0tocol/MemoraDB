@@ -116,7 +116,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 break;
             }
 
-            int total_elements = 0;
+            size_t total_elements = 0;
             for (int i = 2; i < token_count; i++) {
                 size_t new_len = list_rpush(list, tokens[i]);
                 if (new_len > total_elements) {
@@ -124,7 +124,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
 
-            dprintf(client_fd, ":%d\r\n", total_elements);
+            dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
     case CMD_LPUSH:
@@ -137,7 +137,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 break;
             }
 
-            int total_elements = 0;
+            size_t total_elements = 0;
             for (int i = 2 ; i < token_count ; i++) {
                 size_t new_len = list_lpush(list, tokens[i]);
                 if (new_len > total_elements) {
@@ -145,7 +145,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
 
-            dprintf(client_fd, ":%d\r\n", total_elements);
+            dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
     case CMD_LRANGE:
