@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <time.h>
 
-// Log levels
+/* ==================== Log Levels ==================== */
 typedef enum {
     LOG_INFO,
     LOG_WARN,

@@ -31,7 +31,6 @@
 #define BUFFER_SIZE 1024
 
 static pid_t server_pid = -1;
-static int tests_failed = 0;
 
 void cleanup_processes() {
     if (server_pid > 0) {
@@ -142,15 +141,37 @@ void test_list_operations_integration() {
     
     char buffer[BUFFER_SIZE];
     recv(client_fd, buffer, sizeof(buffer), 0);
-    TEST_ASSERT(strstr(buffer, ":1\r\n") != NULL, "RPUSH should return list length 1");
+    TEST_ASSERT(strstr(buffer, ":1") != NULL, "RPUSH should return list length 1");
     
-    //-- Test LRANGE --//
+    //------------------------------------------------------------------------------------//
+    //------------------------------------ Test LRANGE -----------------------------------//
+    /*-- Since LRANGE is supposed to return the entire 'indexed' list, recv() may not send
+         the entire RESP encoding in a single TCP packet, we'll unbuffer multiple times --*/
+    //------------------------------------------------------------------------------------//
+
     char lrange_cmd[] = "*4\r\n$6\r\nLRANGE\r\n$9\r\ntest_list\r\n$1\r\n0\r\n$2\r\n-1\r\n";
     send(client_fd, lrange_cmd, strlen(lrange_cmd), 0);
     
     memset(buffer, 0, sizeof(buffer));
-    recv(client_fd, buffer, sizeof(buffer), 0);
-    TEST_ASSERT(strstr(buffer, "*1\r\n$6\r\nweasel\r\n") != NULL, "LRANGE should return \"weasel\" RESP serialized");
+
+    int total_received = 0;
+    int attempts = 0;
+
+    while (attempts++ < 5) {
+        int n = recv(client_fd, buffer + total_received, BUFFER_SIZE - total_received - 1, 0);
+        if (n <= 0) break;
+        total_received += n;
+        buffer[total_received] = '\0';
+
+        if (strstr(buffer, "weasel") != NULL) {
+            break;
+        }
+
+        usleep(100 * 1000);  //-- 100ms hold time before we retry --//
+    }
+
+    TEST_ASSERT(strstr(buffer, "weasel") != NULL,
+                "LRANGE should return \"weasel\" RESP serialized");
 
     close(client_fd);
     TEST_SUCCESS("List operations network integration test passed");

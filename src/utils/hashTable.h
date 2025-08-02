@@ -38,7 +38,7 @@ typedef struct Entry {
         char *string_value;
         List *list_value;
     } data;
-    long long expiry; // 0 = no expiry, != 0 = expiry time in ms 
+    long long expiry; //- 0 = no expiry, != 0 = expiry time in ms -//
     struct Entry *next;
 } Entry;
 

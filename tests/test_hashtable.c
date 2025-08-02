@@ -37,18 +37,18 @@ void test_basic_set_get() {
 void test_key_expiry() {
     printf("Testing key expiry with TTL...\n");
     
-    // Set key with 100ms expiry
+    //-- Set key with 100ms expiry --//
     set_value("expiry_key", "expiry_value", 100);
     
-    // Should exist immediately
+    //-- Should exist immediately --//
     const char *result = get_value("expiry_key");
     TEST_ASSERT(result != NULL, "Key should exist immediately after SET");
     TEST_ASSERT(strcmp(result, "expiry_value") == 0, "Key should have correct value");
     
-    // Wait for expiry
+    //-- Wait for expiry --//
     usleep(110000);
-    
-    // Should be expired
+
+    //-- Should be expired --//
     result = get_value("expiry_key");
     TEST_ASSERT(result == NULL, "Key should be expired after TTL");
     

@@ -56,7 +56,7 @@ void set_value(const char *key, const char *value, long long px) {
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            // Free old value based on type
+            //-- Free old value based on type --//
             if (entry->type == VALUE_STRING) {
                 free(entry->data.string_value);
             } else if (entry->type == VALUE_LIST) {
@@ -72,7 +72,7 @@ void set_value(const char *key, const char *value, long long px) {
         entry = entry->next;
     }
 
-    // New entry
+    //-- New entry --//
     entry = malloc(sizeof(Entry));
     entry->key = strdup(key);
     entry->type = VALUE_STRING;
@@ -93,7 +93,6 @@ const char *get_value(const char *key) {
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
             if (entry->expiry > 0 && entry->expiry <= now) {
-                // Key expired, remove from list
                 if (prev)
                     prev->next = entry->next;
                 else
@@ -115,7 +114,7 @@ const char *get_value(const char *key) {
                     return result;
                 }
                 pthread_mutex_unlock(&hashtable_mutex);
-                return NULL; // Not a string
+                return NULL;
             }
         }
         prev = entry;
@@ -132,13 +131,9 @@ List *get_or_create_list(const char *key) {
     Entry *entry = HASHTABLE[idx];
     long long now = current_millis();
 
-    // Search for existing entry
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            // Check expiry
             if (entry->expiry > 0 && entry->expiry <= now) {
-                // Remove expired entry
-                // (same logic as elsewhere)
                 pthread_mutex_unlock(&hashtable_mutex);
                 return NULL;
             }
@@ -154,7 +149,7 @@ List *get_or_create_list(const char *key) {
         entry = entry->next;
     }
 
-    // Not found, create new list entry
+    //-- Not found, create new list entry --//
     Entry *new_entry = malloc(sizeof(Entry));
     if (!new_entry) {
         pthread_mutex_unlock(&hashtable_mutex);

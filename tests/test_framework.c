@@ -19,7 +19,7 @@
 #include "test_framework.h"
 #include <time.h>
 
-// Global test counters
+//-- Global test counters --//
 int total_tests_run = 0;
 int total_tests_passed = 0;
 int total_tests_failed = 0;
@@ -78,13 +78,12 @@ void print_final_summary(void) {
     }
     
     printf("╔══════════════════════════════════════════════════════════════════════════╗\n");
-    printf("║                           TEST EXECUTION SUMMARY                         ║\n");
+    printf("║                     [MemoraDB] TEST EXECUTION SUMMARY                    ║\n");
     printf("╠══════════════════════════════════════════════════════════════════════════╣\n");
     printf(COLOR_RESET);
     
     if (total_tests_failed == 0) {
-        printf("╔══════════════════════════════════════════════════════════════════════════╗\n");
-        printf("║ " COLOR_GREEN COLOR_BOLD "Status:         SUCCESS" COLOR_RESET "                                                ║\n");
+        printf("║ " COLOR_GREEN COLOR_BOLD "Status:         SUCCESS" COLOR_RESET "                                                  ║\n");
     } else {
         printf("║ " COLOR_RED COLOR_BOLD "Status:           FAILURE" COLOR_RESET "                                                ║\n");
     }

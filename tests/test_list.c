@@ -83,7 +83,7 @@ void test_lrange_operations() {
     TEST_ASSERT(strcmp(result[1], "item2") == 0, "Second item should be item2");
     TEST_ASSERT(strcmp(result[2], "item3") == 0, "Third item should be item3");
     
-    // Free result
+    //-- Free result --//
     for (int i = 0; i < count; i++) {
         free(result[i]);
     }
