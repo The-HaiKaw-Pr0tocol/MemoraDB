@@ -129,8 +129,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
 
-            dprintf(client_fd, ":%d\r\n", total_elements);
-
             dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
@@ -151,8 +149,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                     total_elements = new_len;
                 }
             }
-
-            dprintf(client_fd, ":%d\r\n", total_elements);
 
             dprintf(client_fd, ":%zu\r\n", total_elements);
         }
@@ -261,18 +257,6 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         }
         break;
     }
-    case CMD_LLEN:
-        if (token_count < 2) {
-            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LLEN'\r\n");
-        } else {
-            List *list = get_list_if_exists(tokens[1]);
-            int length = 0;
-            if (list) {
-                length = list_length(list);
-            }
-            dprintf(client_fd, ":%d\r\n", length);
-        }
-        break;
     case CMD_DEL:
         if (token_count < 2) {
             dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'DEL'\r\n");
