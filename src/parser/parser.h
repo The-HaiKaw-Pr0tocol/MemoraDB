@@ -5,8 +5,8 @@
  * 
  * File                      : src/parser/parser.h
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : Weasel
- * Last Update               : 07/24/2025
+ * Last Updating Author      : kei077
+ * Last Update               : 08/06/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -38,6 +38,8 @@ enum command_t {
     CMD_LPUSH,
     CMD_LRANGE,
     CMD_LLEN,
+    CMD_LPOP,
+    CMD_BLPOP,
     CMD_UNKNOWN
 };
 

@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/list.c
  * Module                    : Linked List
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/24/2025
+ * Last Updating Author      : kei077
+ * Last Update               : 08/06/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -84,14 +84,14 @@ size_t list_length(const List *list) {
     return list ? list->length : 0;
 }
 
-char **list_range(List *list, int start, int end, int *count) {
-    if (!list || !count) {
-        *count = 0;
+char **list_range(List *list, int start, int end, int *length) {
+    if (!list || !length) {
+        *length = 0;
         return NULL;
     }
 
     int len = list->length;
-    *count = 0;
+    *length = 0;
 
     if (start < 0) start += len;
     if (end < 0) end += len;
@@ -102,10 +102,10 @@ char **list_range(List *list, int start, int end, int *count) {
         return NULL;
     }
 
-    *count = end - start + 1;
-    char **result = malloc(sizeof(char*) * (*count));
+    *length = end - start + 1;
+    char **result = malloc(sizeof(char*) * (*length));
     if (!result) {
-        *count = 0;
+        *length = 0;
         return NULL;
     }
 
@@ -114,20 +114,61 @@ char **list_range(List *list, int start, int end, int *count) {
         current = current->next;
     }
 
-    for (int i = 0; i < *count; i++) {
+    for (int i = 0; i < *length; i++) {
         result[i] = strdup(current->value);
         if (!result[i]) {
             for (int j = 0; j < i; j++) {
                 free(result[j]);
             }
             free(result);
-            *count = 0;
+            *length = 0;
             return NULL;
         }
         current = current->next;
     }
 
     return result;
+}
+
+
+char* lpop_element(List *list) {
+    if (!list || !list->head) {
+        return NULL;
+    }
+
+    ListNode *node = list->head;
+    char *value = strdup(node->value);
+    
+    list->head = node->next;
+    list->length--;
+    
+    if (list->length == 0) {
+        list->tail = NULL;
+    }
+    
+    free(node);
+    return value;
+}
+
+char **lpop_multiple(List *list, int length, int *actual_length) {
+    if (!list || length <= 0 || list->length == 0) {
+        *actual_length = 0;
+        return NULL;
+    }
+
+    int num = (length > list->length) ? list->length : length;
+    char **results = malloc(sizeof(char*) * num);
+    if (!results) {
+        *actual_length = 0;
+        return NULL;
+    }
+
+    for (int i = 0; i < num; i++) {
+        results[i] = lpop_element(list);  
+    }
+
+    *actual_length = num;
+    return results;
 }
 
 void list_free(List *list) {
