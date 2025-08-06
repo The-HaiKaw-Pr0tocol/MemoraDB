@@ -130,21 +130,20 @@ int main(int argc, char *argv[]) {
         //-- Display response --//
         buffer[bytes_received] = '\0';
         
-        // Check if response starts with RESP protocol markers
+        //-- Check if response starts with RESP protocol markers --//
         if (buffer[0] == '+' || buffer[0] == '-' || buffer[0] == ':' || 
             buffer[0] == '$' || buffer[0] == '*') {
-            // Parse and display RESP response
+            //-- Parse and display RESP response --//
             int parsed = parse_and_display_resp(buffer);
             if (parsed == -1) {
                 printf("Error parsing RESP response\n");
                 printf("Raw response: %s", buffer);
             }
         } else {
-            // Display raw response (for MemoraDB logging messages)
+            //-- Display raw response (for MemoraDB logging messages) --//
             printf("%s", buffer);
         }
         
-        // Remove the \r\n we added for sending
         command[strlen(command) - 2] = '\0';
     }
     

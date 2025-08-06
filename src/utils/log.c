@@ -29,15 +29,12 @@ void log_message(log_level_t level, const char *format, ...) {
         default:        prefix = "[MemoraDB] "; break;
     }
 
-    // Print prefix
     fprintf(stdout, "%s ", prefix);
 
-    // Print formatted message
     va_list args;
     va_start(args, format);
     vfprintf(stdout, format, args);
     va_end(args);
 
-    // Add newline
     fprintf(stdout, "\n");
 }

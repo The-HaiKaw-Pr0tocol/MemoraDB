@@ -7,6 +7,8 @@
  * Module                    : RESP Protocol Parser
  * Last Updating Author      : kei077
  * Last Update               : 08/06/2025
+ * Last Updating Author      : Haitam Bidiouane
+ * Last Update               : 07/29/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -56,6 +58,7 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "ECHO") == 0) return CMD_ECHO;
     if(strcasecmp(cmd, "SET") == 0) return CMD_SET;
     if(strcasecmp(cmd, "GET") == 0) return CMD_GET;
+    if(strcasecmp(cmd, "DEL") == 0) return CMD_DEL;
     if(strcasecmp(cmd, "RPUSH") == 0) return CMD_RPUSH;
     if(strcasecmp(cmd, "LRANGE") == 0) return CMD_LRANGE;
     if(strcasecmp(cmd, "LPUSH") == 0) return CMD_LPUSH;
@@ -118,7 +121,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 break;
             }
 
-            int total_elements = 0;
+            size_t total_elements = 0;
             for (int i = 2; i < token_count; i++) {
                 size_t new_len = list_rpush(list, tokens[i]);
                 if (new_len > total_elements) {
@@ -127,6 +130,8 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             }
 
             dprintf(client_fd, ":%d\r\n", total_elements);
+
+            dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
     case CMD_LPUSH:
@@ -139,7 +144,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 break;
             }
 
-            int total_elements = 0;
+            size_t total_elements = 0;
             for (int i = 2 ; i < token_count ; i++) {
                 size_t new_len = list_lpush(list, tokens[i]);
                 if (new_len > total_elements) {
@@ -148,6 +153,8 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             }
 
             dprintf(client_fd, ":%d\r\n", total_elements);
+
+            dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
     case CMD_LRANGE:
@@ -254,6 +261,32 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         }
         break;
     }
+    case CMD_LLEN:
+        if (token_count < 2) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LLEN'\r\n");
+        } else {
+            List *list = get_list_if_exists(tokens[1]);
+            int length = 0;
+            if (list) {
+                length = list_length(list);
+            }
+            dprintf(client_fd, ":%d\r\n", length);
+        }
+        break;
+    case CMD_DEL:
+        if (token_count < 2) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'DEL'\r\n");
+        } else {
+            int deleted_count = 0;
+            /* delete each key provided */
+            for (int i = 1; i < token_count; i++) {
+                if (delete_key(tokens[i])) {
+                    deleted_count++;
+                }
+            }
+            dprintf(client_fd, ":%d\r\n", deleted_count);
+        }
+        break;
     default:
         dprintf(client_fd, "[MemoraDB: WARN] Unknown command '%s'\n", tokens[0]);
         break;

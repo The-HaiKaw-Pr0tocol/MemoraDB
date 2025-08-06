@@ -48,7 +48,7 @@ size_t list_rpush(List *list, const char *value) {
         list->tail->next = node;
         list->tail = node;
     } else {
-        // Empty list
+        //-- Empty list --//
         list->head = list->tail = node;
     }
     
@@ -73,7 +73,7 @@ size_t list_lpush(List *list, const char *value) {
         node->next = list->head;
         list->head = node;
     } else {
-        // Empty list
+        //-- Empty list --//
         list->head = list->tail = node;
     }
     

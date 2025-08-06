@@ -49,6 +49,7 @@ void *handle_client(void *arg) {
     return NULL;
 }
 
+#ifndef TESTING
 int main() {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
@@ -58,7 +59,8 @@ int main() {
 
     log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
 
-    int server_fd, client_addr_len;
+    int server_fd;
+    socklen_t client_addr_len;
     struct sockaddr_in client_addr;
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -114,3 +116,4 @@ int main() {
     close(server_fd);
     return 0;
 }
+#endif

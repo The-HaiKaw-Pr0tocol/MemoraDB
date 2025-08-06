@@ -34,6 +34,7 @@ enum command_t {
     CMD_ECHO,
     CMD_SET,
     CMD_GET,
+    CMD_DEL,
     CMD_RPUSH,
     CMD_LPUSH,
     CMD_LRANGE,

@@ -38,7 +38,7 @@ typedef struct Entry {
         char *string_value;
         List *list_value;
     } data;
-    long long expiry; // 0 = no expiry, != 0 = expiry time in ms 
+    long long expiry; //- 0 = no expiry, != 0 = expiry time in ms -//
     struct Entry *next;
 } Entry;
 
@@ -89,5 +89,13 @@ List *get_or_create_list(const char *key);
  * @return Pointer to the list, or NULL if not found or not a list
  */
 List *get_list_if_exists(const char *key);
+
+/**
+ * Delete a key from the hash table, removing both string and list types.
+ * Properly frees memory for both string values and list structures.
+ * @param key The key to delete
+ * @return 1 if the key was deleted, 0 if not found
+ */
+int delete_key(const char *key);
 
 #endif // HASHTABLE_H
