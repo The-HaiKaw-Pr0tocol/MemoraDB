@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.c
  * Module                    : Hash Table
- * Last Updating Author      : Kei077
- * Last Update               : 07/22/2025
+ * Last Updating Author      : Haitam Bidiouane
+ * Last Update               : 07/29/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -56,8 +56,15 @@ void set_value(const char *key, const char *value, long long px) {
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
-            free(entry->value);
-            entry->value = strdup(value);
+            //-- Free old value based on type --//
+            if (entry->type == VALUE_STRING) {
+                free(entry->data.string_value);
+            } else if (entry->type == VALUE_LIST) {
+                list_free(entry->data.list_value);
+            }
+            
+            entry->type = VALUE_STRING;
+            entry->data.string_value = strdup(value);
             entry->expiry = expiry;
             pthread_mutex_unlock(&hashtable_mutex);
             return;
@@ -65,10 +72,11 @@ void set_value(const char *key, const char *value, long long px) {
         entry = entry->next;
     }
 
-    // New entry
+    //-- New entry --//
     entry = malloc(sizeof(Entry));
     entry->key = strdup(key);
-    entry->value = strdup(value);
+    entry->type = VALUE_STRING;
+    entry->data.string_value = strdup(value);
     entry->expiry = expiry;
     entry->next = HASHTABLE[idx];
     HASHTABLE[idx] = entry;
@@ -85,21 +93,28 @@ const char *get_value(const char *key) {
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
             if (entry->expiry > 0 && entry->expiry <= now) {
-                // Key expired, remove from list
                 if (prev)
                     prev->next = entry->next;
                 else
                     HASHTABLE[idx] = entry->next;
 
                 free(entry->key);
-                free(entry->value);
+                if (entry->type == VALUE_STRING) {
+                    free(entry->data.string_value);
+                } else if (entry->type == VALUE_LIST) {
+                    list_free(entry->data.list_value);
+                }
                 free(entry);
                 pthread_mutex_unlock(&hashtable_mutex);
                 return NULL;
             } else {
-                const char *result = entry->value;
+                if (entry->type == VALUE_STRING) {
+                    const char *result = entry->data.string_value;
+                    pthread_mutex_unlock(&hashtable_mutex);
+                    return result;
+                }
                 pthread_mutex_unlock(&hashtable_mutex);
-                return result;
+                return NULL;
             }
         }
         prev = entry;
@@ -108,4 +123,109 @@ const char *get_value(const char *key) {
 
     pthread_mutex_unlock(&hashtable_mutex);
     return NULL;
+}
+
+List *get_or_create_list(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+            if (entry->type == VALUE_LIST) {
+                List *list = entry->data.list_value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return list;
+            } else {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+        }
+        entry = entry->next;
+    }
+
+    //-- Not found, create new list entry --//
+    Entry *new_entry = malloc(sizeof(Entry));
+    if (!new_entry) {
+        pthread_mutex_unlock(&hashtable_mutex);
+        return NULL;
+    }
+    new_entry->key = strdup(key);
+    new_entry->type = VALUE_LIST;
+    new_entry->data.list_value = list_create();
+    new_entry->expiry = 0;
+    new_entry->next = HASHTABLE[idx];
+    HASHTABLE[idx] = new_entry;
+
+    List *list = new_entry->data.list_value;
+    pthread_mutex_unlock(&hashtable_mutex);
+    return list;
+}
+
+List *get_list_if_exists(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+            if (entry->type == VALUE_LIST) {
+                List *list = entry->data.list_value;
+                pthread_mutex_unlock(&hashtable_mutex);
+                return list;
+            } else {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return NULL;
+            }
+        }
+        entry = entry->next;
+    }
+    pthread_mutex_unlock(&hashtable_mutex);
+    return NULL;
+}
+
+/**
+ * Delete a key from the hash table, handling both string and list types.
+ * Removes the entry from the linked list and frees all associated memory.
+ */
+int delete_key(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *prev = NULL;
+    Entry *entry = HASHTABLE[idx];
+
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (prev)
+                prev->next = entry->next;
+            else
+                HASHTABLE[idx] = entry->next;
+
+            free(entry->key);
+            if (entry->type == VALUE_STRING) {
+                free(entry->data.string_value);
+            } else if (entry->type == VALUE_LIST) {
+                list_free(entry->data.list_value);
+            }
+            free(entry);
+            
+            pthread_mutex_unlock(&hashtable_mutex);
+            return 1;
+        }
+        prev = entry;
+        entry = entry->next;
+    }
+    
+    pthread_mutex_unlock(&hashtable_mutex);
+    return 0;
 }
