@@ -5,10 +5,8 @@
  * 
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : kei077
- * Last Update               : 08/06/2025
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/29/2025
+ * Last Updating Author      : Kawtar TAIK
+ * Last Update               : 08/11/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -193,7 +191,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         break;
     case CMD_LPOP:
         if (token_count == 2) {
-            List *list = get_or_create_list(tokens[1]);
+            List *list = get_list_if_exists(tokens[1]);
             char *popped = lpop_element(list);
             if (popped) {
                 dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(popped), popped);
@@ -202,7 +200,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 dprintf(client_fd, "$-1\r\n");
             }
         } else if (token_count == 3) {
-            List *list = get_or_create_list(tokens[1]);
+            List *list = get_list_if_exists(tokens[1]);
             int count = atoi(tokens[2]);
             if (count <= 0) {
                 dprintf(client_fd, "*0\r\n");
@@ -218,12 +216,12 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 free(popped_elements);
             }
         } else {
-            dprintf(client_fd, "-ERR wrong number of arguments for 'LPOP'\r\n");
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LPOP'\r\n");
         }
         break;
     case CMD_BLPOP: {
         if (token_count != 3) {
-            dprintf(client_fd, "-ERR wrong number of arguments for 'BLPOP'\r\n");
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'BLPOP'\r\n");
             break;
         }
 
@@ -232,7 +230,7 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         long long start_time = current_millis();
         long long timeout_ms = (long long)(timeout_sec * 1000);
 
-        List *list = get_or_create_list(list_name);
+        List *list = get_list_if_exists(list_name);
         char *element = NULL;
 
         while (1) {
