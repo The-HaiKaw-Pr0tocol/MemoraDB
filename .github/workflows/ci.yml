@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  pull-requests: write
+  contents: read
+
 ## it will run after every commit and cancel the older run
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
