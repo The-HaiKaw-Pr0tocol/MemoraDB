@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+## it will run after every commit and cancel the older run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# For now our workflow has only one job, to run tests
+jobs:
+  tests:
+    runs-on: ubuntu-latest # running env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Compile tests
+        run: make test 
+
+      - name: Run tests
+        run: |
+          make clean
+          make run-tests
+
+      - name: Upload test logs if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: /tmp/memoradb_test_results.txt
+
