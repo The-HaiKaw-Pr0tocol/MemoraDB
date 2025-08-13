@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/list.h
  * Module                    : Linked List
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/24/2025
+ * Last Updating Author      : kei077
+ * Last Update               : 08/06/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -83,5 +83,26 @@ void list_free(List *list);
  * @return Array of strings that must be freed by caller, NULL on error
  */
 char **list_range(List *list, int start, int end, int *count);
+
+/**
+ * Remove and return the first element (head) of the list.
+ * 
+ * @param list The list to remove the element from.
+ * @return A newly allocated string containing the value, or NULL if the list is empty.
+ *         Caller is responsible for freeing the returned string.
+ */
+char* lpop_element(List *list);
+
+/**
+ * Pop multiple elements from the head of the list.
+ * 
+ * @param list The list to pop from.
+ * @param length The number of elements to attempt to pop.
+ * @param actual_length Pointer to an integer where the number of actually popped elements will be stored.
+ * @return Array of strings (heap-allocated) popped from the list, or NULL on error.
+ *         Caller is responsible for freeing each string and the array itself.
+ */
+char **lpop_multiple(List *list, int length, int *actual_length);
+
 
 #endif // LIST_H
