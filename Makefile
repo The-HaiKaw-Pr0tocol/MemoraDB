@@ -4,8 +4,8 @@
 # 
 # File                      : Makefile
 # Module                    : Build System Configuration
-# Last Updating Author      : sch0penheimer
-# Last Update               : 2025/31/07
+# Last Updating Author      : kei077
+# Last Update               : 08/14/2025
 # Version                   : 1.0.0
 # 
 # Description:
@@ -95,7 +95,7 @@ run-tests: test
 	echo 'int main() { print_final_summary(); return 0; }' >> /tmp/summary.c; \
 	$(CC) $(CFLAGS) -I./tests -o /tmp/summary /tmp/summary.c tests/test_framework.c $(LDFLAGS); \
 	/tmp/summary; \
-	rm -f /tmp/summary /tmp/summary.c /tmp/memoradb_test_results.txt; \
+	rm -f /tmp/summary /tmp/summary.c; \
 	exit $$overall_status
 
 # === Clean up generated files === #

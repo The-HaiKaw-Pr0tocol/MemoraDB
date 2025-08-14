@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+## it will run after every commit and cancel the older run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest # running env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Compile tests
+        run: make test 
+
+      - name: Run tests
+        run: |
+          make run-tests
+
+      - name: Upload test logs if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: /tmp/memoradb_test_results.txt
+
+      - name: Post or Update PR Comment with Test Results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const jsonPath = '/tmp/memoradb_summary.json';
+            const rawPath  = '/tmp/memoradb_test_results.txt';
+
+            // Prefer the JSON summary produced by print_final_summary()
+            let summary = null;
+            if (fs.existsSync(jsonPath)) {
+              try {
+                summary = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+              } catch (e) {
+                summary = null;
+              }
+            }
+
+            let bodySection;
+            if (summary) {
+              bodySection = `**Totals**
+              - Total: ${summary.total}
+              - Passed: ${summary.passed}
+              - Failed: ${summary.failed}
+              `;
+            } else {
+              // Fallback: show raw counters file (sanitized)
+              let raw = fs.existsSync(rawPath) ? fs.readFileSync(rawPath, 'utf8') : 'No test results file found.';
+              const ansi = /\u001b\[[0-9;]*[A-Za-z]/g;
+              raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(ansi, '').trim();
+              bodySection = '```\n' + raw + '\n```';
+            }
+
+            const commitSha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : context.sha;
+
+            const header = '### Test Results from CI';
+            const body = `${header}
+            Commit: \`${commitSha}\`
+
+            ${bodySection}
+            `;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.startsWith(header));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }

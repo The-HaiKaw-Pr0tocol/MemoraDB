@@ -5,8 +5,8 @@
  * 
  * File                      : tests/test_framework.c
  * Module                    : Test Framework Implementation
- * Last Updating Author      : sch0penheimer
- * Last Update               : 2025/31/07
+ * Last Updating Author      : kei077
+ * Last Update               : 08/14/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -18,6 +18,7 @@
 
 #include "test_framework.h"
 #include <time.h>
+#include <string.h>
 
 //-- Global test counters --//
 int total_tests_run = 0;
@@ -60,6 +61,22 @@ void load_all_test_results(void) {
 void print_test_summary(void) {
     //-- Called on failure - just exit without summary --//
     printf(COLOR_RED "\nTest suite stopped due to failure\n" COLOR_RESET);
+}
+
+/**
+ * Helper method to write test run summary
+ * in file, so they can be added as a comment
+ * in PR
+ */
+static void write_json_summary(const char* path) {
+    FILE* f = fopen(path, "w");
+    if (!f) return;
+    fprintf(f, "{\n");
+    fprintf(f, "  \"total\": %d,\n", total_tests_run);
+    fprintf(f, "  \"passed\": %d,\n", total_tests_passed);
+    fprintf(f, "  \"failed\": %d\n", total_tests_failed);
+    fprintf(f, "}\n");
+    fclose(f);
 }
 
 void print_final_summary(void) {
@@ -105,4 +122,5 @@ void print_final_summary(void) {
     
     printf("╚══════════════════════════════════════════════════════════════════════════╝\n");
     printf(COLOR_RESET "\n");
+    write_json_summary("/tmp/memoradb_summary.json");
 }
