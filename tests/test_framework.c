@@ -5,8 +5,8 @@
  * 
  * File                      : tests/test_framework.c
  * Module                    : Test Framework Implementation
- * Last Updating Author      : sch0penheimer
- * Last Update               : 2025/31/07
+ * Last Updating Author      : kei077
+ * Last Update               : 08/14/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -63,7 +63,11 @@ void print_test_summary(void) {
     printf(COLOR_RED "\nTest suite stopped due to failure\n" COLOR_RESET);
 }
 
-// Private helper, not in header
+/**
+ * Helper method to write test run summary
+ * in file, so they can be added as a comment
+ * in PR
+ */
 static void write_json_summary(const char* path) {
     FILE* f = fopen(path, "w");
     if (!f) return;

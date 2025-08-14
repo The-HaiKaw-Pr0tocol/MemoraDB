@@ -4,8 +4,8 @@
 # 
 # File                      : Makefile
 # Module                    : Build System Configuration
-# Last Updating Author      : sch0penheimer
-# Last Update               : 2025/31/07
+# Last Updating Author      : kei077
+# Last Update               : 08/14/2025
 # Version                   : 1.0.0
 # 
 # Description:
