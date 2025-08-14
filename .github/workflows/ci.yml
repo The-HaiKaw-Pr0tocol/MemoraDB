@@ -47,17 +47,44 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const resultsPath = '/tmp/memoradb_test_results.txt';
-            let results = fs.existsSync(resultsPath)
-              ? fs.readFileSync(resultsPath, 'utf8')
-              : 'No test results file found.';
+            const jsonPath = '/tmp/memoradb_summary.json';
+            const rawPath  = '/tmp/memoradb_test_results.txt';
+
+            // Prefer the JSON summary produced by print_final_summary()
+            let summary = null;
+            if (fs.existsSync(jsonPath)) {
+              try {
+                summary = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+              } catch (e) {
+                summary = null;
+              }
+            }
+
+            let bodySection;
+            if (summary) {
+              bodySection = `**Totals**
+              - Total: ${summary.total}
+              - Passed: ${summary.passed}
+              - Failed: ${summary.failed}
+              `;
+            } else {
+              // Fallback: show raw counters file (sanitized)
+              let raw = fs.existsSync(rawPath) ? fs.readFileSync(rawPath, 'utf8') : 'No test results file found.';
+              const ansi = /\u001b\[[0-9;]*[A-Za-z]/g;
+              raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(ansi, '').trim();
+              bodySection = '```\n' + raw + '\n```';
+            }
 
             const commitSha = context.payload.pull_request
               ? context.payload.pull_request.head.sha
               : context.sha;
 
-            const commentHeader = '### Test Results from CI';
-            const body = `${commentHeader}\nCommit: \`${commitSha}\`\n\`\`\`\n${results}\n\`\`\``;
+            const header = '### Test Results from CI';
+            const body = `${header}
+            Commit: \`${commitSha}\`
+
+            ${bodySection}
+            `;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -65,7 +92,7 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const existing = comments.find(c => c.body.startsWith(commentHeader));
+            const existing = comments.find(c => c.body.startsWith(header));
 
             if (existing) {
               await github.rest.issues.updateComment({
@@ -82,6 +109,3 @@ jobs:
                 body
               });
             }
-      - name: Clean worksapce
-        run: make clean
-
