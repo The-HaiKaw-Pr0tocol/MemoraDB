@@ -1,0 +1,14 @@
+.git
+.github
+tests
+**/*.o
+**/*.out
+**/*.a
+**/*.so
+**/*.dSYM
+/build
+/tmp
+*.log
+*.swp
+*.swo
+.DS_Store
