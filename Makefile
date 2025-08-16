@@ -16,6 +16,7 @@
 #  all        - Build client and server executables
 #  test       - Compile all test files in tests/ directory
 #  run-tests  - Compile and execute all tests with colored output
+#  headers    - Refresh file headers (author/date) using build.sh
 #  clean      - Remove all generated binaries and executables
 # 
 # Copyright (c) 2025 MemoraDB Project
@@ -43,9 +44,13 @@ SERVER_OUT = server
 TEST_OUTS = $(patsubst tests/%.c, tests/%,$(wildcard tests/*.c))
 
 # === Targets === #
-.PHONY: all clean test run-tests
+.PHONY: all clean test run-tests headers
 
-all: $(CLIENT_OUT) $(SERVER_OUT)
+# === Header refresh === #
+headers:
+	@./build.sh
+
+all: headers $(CLIENT_OUT) $(SERVER_OUT)
 
 $(CLIENT_OUT): $(CLIENT_SRC) $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
@@ -57,7 +62,7 @@ $(SERVER_OUT): $(SERVER_SRC) $(FILES)
 # ======================================================================================== #
 
 # === Run the server and compiles all .c files in tests / directory === #
-test: $(SERVER_OUT)
+test: headers $(SERVER_OUT)
 	@for test_file in tests/*.c; do \
 		test_name=$$(basename $$test_file .c); \
 		if [ "$$test_name" = "test_framework" ]; then \
