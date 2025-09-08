@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/29/2025
+ * Last Updating Author      : mohamedriyad-bouzani-nw
+ * Last Update               : 09/02/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -97,5 +97,11 @@ List *get_list_if_exists(const char *key);
  * @return 1 if the key was deleted, 0 if not found
  */
 int delete_key(const char *key);
+
+/**
+ * Get current time in milliseconds since epoch
+ * @return Current time in milliseconds
+ */
+long long current_millis(void);
 
 #endif // HASHTABLE_H
