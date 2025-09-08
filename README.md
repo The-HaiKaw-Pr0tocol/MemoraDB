@@ -117,8 +117,6 @@ MemoraDB is designed to be a standalone in-memory database with all its client f
 
 ## Table of Contents
 
-## Table of Contents
-
 1. [Architecture and Design](#1-architecture-and-design)
     - [System Architecture](#11-system-architecture)
     - [Component Structure](#12-component-structure)
@@ -216,12 +214,12 @@ MemoraDB, and all of its core features: client, server, protocol handling, and t
 
 #### 1.3.2 System Libraries Used:
 
-- `<stdio.h>` — Standard input/output
-- `<stdlib.h>` — Memory allocation, process control
-- `<string.h>` — String handling
-- `<unistd.h>` — POSIX system calls and threading
-- `<time.h>` — Time/date functions
-- `<stdarg.h>` — Variadic arguments
+- `<stdio.h>` : Standard input/output
+- `<stdlib.h>` : Memory allocation, process control
+- `<string.h>` : String handling
+- `<unistd.h>` : POSIX system calls and threading
+- `<time.h>` : Time/date functions
+- `<stdarg.h>` : Variadic arguments
 
 #### 1.3.3 External Linker Flags:
 - `-lpthread` — Used for multi-threading (required for thread-per-client server model)
