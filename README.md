@@ -112,6 +112,15 @@ MemoraDB is designed to be a standalone in-memory database with all its client f
     <img src="https://img.shields.io/badge/FlawlessAw-6b0e96?style=flat-square&logo=github&logoColor=white" />
   </a>
 </td>
+<td align="center">
+  <a href="https://github.com/Pouzani">
+    <img src="https://avatars.githubusercontent.com/u/95249359?v=4" width="60px;" alt="Pouzani"/>
+  </a>
+  <br>
+  <a href="https://github.com/Pouzani" title="GitHub">
+    <img src="https://img.shields.io/badge/Pouzani-6b0e96?style=flat-square&logo=github&logoColor=white" />
+  </a>
+</td>
 </tr>
 </table>
 
