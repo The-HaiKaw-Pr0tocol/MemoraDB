@@ -112,10 +112,17 @@ MemoraDB is designed to be a standalone in-memory database with all its client f
     <img src="https://img.shields.io/badge/FlawlessAw-6b0e96?style=flat-square&logo=github&logoColor=white" />
   </a>
 </td>
+<td align="center">
+  <a href="https://github.com/Pouzani">
+    <img src="https://avatars.githubusercontent.com/u/95249359?v=4" width="60px;" alt="Pouzani"/>
+  </a>
+  <br>
+  <a href="https://github.com/Pouzani" title="GitHub">
+    <img src="https://img.shields.io/badge/Pouzani-6b0e96?style=flat-square&logo=github&logoColor=white" />
+  </a>
+</td>
 </tr>
 </table>
-
-## Table of Contents
 
 ## Table of Contents
 
@@ -216,12 +223,12 @@ MemoraDB, and all of its core features: client, server, protocol handling, and t
 
 #### 1.3.2 System Libraries Used:
 
-- `<stdio.h>` — Standard input/output
-- `<stdlib.h>` — Memory allocation, process control
-- `<string.h>` — String handling
-- `<unistd.h>` — POSIX system calls and threading
-- `<time.h>` — Time/date functions
-- `<stdarg.h>` — Variadic arguments
+- `<stdio.h>` : Standard input/output
+- `<stdlib.h>` : Memory allocation, process control
+- `<string.h>` : String handling
+- `<unistd.h>` : POSIX system calls and threading
+- `<time.h>` : Time/date functions
+- `<stdarg.h>` : Variadic arguments
 
 #### 1.3.3 External Linker Flags:
 - `-lpthread` — Used for multi-threading (required for thread-per-client server model)

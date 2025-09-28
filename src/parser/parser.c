@@ -5,8 +5,8 @@
  * 
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/29/2025
+ * Last Updating Author      : Kawtar TAIK
+ * Last Update               : 08/11/2025
  * Version                   : 1.0.0
  * 
  * Description:
@@ -61,6 +61,8 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd, "LRANGE") == 0) return CMD_LRANGE;
     if(strcasecmp(cmd, "LPUSH") == 0) return CMD_LPUSH;
     if(strcasecmp(cmd,"LLEN") == 0) return CMD_LLEN;
+    if(strcasecmp(cmd, "LPOP") == 0) return CMD_LPOP;
+    if(strcasecmp(cmd, "BLPOP") == 0) return CMD_BLPOP;
     return CMD_UNKNOWN;
 }
 
@@ -187,6 +189,72 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
             dprintf(client_fd, ":%d\r\n", length);
         }
         break;
+    case CMD_LPOP:
+        if (token_count == 2) {
+            List *list = get_list_if_exists(tokens[1]);
+            char *popped = lpop_element(list);
+            if (popped) {
+                dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(popped), popped);
+                free(popped);
+            } else {
+                dprintf(client_fd, "$-1\r\n");
+            }
+        } else if (token_count == 3) {
+            List *list = get_list_if_exists(tokens[1]);
+            int count = atoi(tokens[2]);
+            if (count <= 0) {
+                dprintf(client_fd, "*0\r\n");
+            } else {
+                int actual_count = 0;
+                char **popped_elements = lpop_multiple(list, count, &actual_count);
+
+                dprintf(client_fd, "*%d\r\n", actual_count);
+                for (int i = 0; i < actual_count; i++) {
+                    dprintf(client_fd, "$%lu\r\n%s\r\n", strlen(popped_elements[i]), popped_elements[i]);
+                    free(popped_elements[i]);
+                }
+                free(popped_elements);
+            }
+        } else {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LPOP'\r\n");
+        }
+        break;
+    case CMD_BLPOP: {
+        if (token_count != 3) {
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'BLPOP'\r\n");
+            break;
+        }
+
+        const char *list_name = tokens[1];
+        double timeout_sec = atof(tokens[2]);
+        long long start_time = current_millis();
+        long long timeout_ms = (long long)(timeout_sec * 1000);
+
+        List *list = get_list_if_exists(list_name);
+        char *element = NULL;
+
+        while (1) {
+            element = lpop_element(list);
+            if (element != NULL) {
+                dprintf(client_fd, "*2\r\n$%lu\r\n%s\r\n$%lu\r\n%s\r\n",
+                        strlen(list_name), list_name,
+                        strlen(element), element);
+                free(element);
+                break;
+            }
+
+            long long elapsed = current_millis() - start_time;
+
+            if (timeout_sec == 0.0 || elapsed < timeout_ms) {
+                usleep(100 * 1000);
+                continue;
+            }
+
+            dprintf(client_fd, "$-1\r\n");
+            break;
+        }
+        break;
+    }
     case CMD_DEL:
         if (token_count < 2) {
             dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'DEL'\r\n");

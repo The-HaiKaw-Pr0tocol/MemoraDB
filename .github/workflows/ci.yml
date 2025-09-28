@@ -1,0 +1,202 @@
+# .github/workflows/ci.yml
+name: CI Tests
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+#- Cancel older runs -#
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            /var/cache/apt
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/Makefile') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Compile tests
+        run: make test
+
+      - name: Run tests
+        run: make run-tests
+
+      - name: Prepare test results
+        if: always()
+        run: |
+          # Ensure the results are in a known location
+          mkdir -p ./test-results
+          
+          # Copy results if they exist
+          if [ -f "/tmp/memoradb_summary.json" ]; then
+            cp /tmp/memoradb_summary.json ./test-results/
+          fi
+          
+          if [ -f "/tmp/memoradb_test_results.txt" ]; then
+            cp /tmp/memoradb_test_results.txt ./test-results/
+          fi
+          
+          # Create a metadata file with context
+          cat > ./test-results/metadata.json << EOF
+          {
+            "pr_number": "${{ github.event.number }}",
+            "head_sha": "${{ github.event.pull_request.head.sha || github.sha }}",
+            "base_sha": "${{ github.event.pull_request.base.sha || github.sha }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "actor": "${{ github.actor }}",
+            "event_name": "${{ github.event_name }}",
+            "ref": "${{ github.ref }}",
+            "repository": "${{ github.repository }}",
+            "head_repository": "${{ github.event.pull_request.head.repo.full_name || github.repository }}"
+          }
+          EOF
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: ./test-results/
+          retention-days: 3
+
+      - name: Comment on PR (same-repo only)
+        ##-- same-repo PRs only, not forks --##
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            const jsonPath = './test-results/memoradb_summary.json';
+            const rawPath = './test-results/memoradb_test_results.txt';
+            
+            const safeReadFile = (filePath) => {
+              try {
+                return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
+              } catch (e) {
+                console.log(`Error reading ${filePath}:`, e.message);
+                return null;
+              }
+            };
+            
+            let summary = null;
+            const jsonContent = safeReadFile(jsonPath);
+            if (jsonContent) {
+              try {
+                summary = JSON.parse(jsonContent);
+              } catch (e) {
+                console.log('Error parsing JSON summary:', e.message);
+              }
+            }
+            
+            let bodySection;
+            let status = 'Unknown';
+            
+            if (summary) {
+              if (summary.failed > 0) {
+                status = 'FAILED';
+              } else if (summary.passed > 0) {
+                status = 'PASSED';
+              }
+              
+              bodySection = `
+            **Status: ${status}**
+            
+            | Metric | Count |
+            |--------|-------|
+            | Total  | ${summary.total} |
+            | Passed | ${summary.passed} |
+            | Failed | ${summary.failed} |
+            `;
+            } else {
+              let raw = safeReadFile(rawPath) || 'No test results file found.';
+              const ansiRegex = /\u001b\[[0-9;]*[A-Za-z]/g;
+              raw = raw.replace(/\r\n/g, '\n')
+                       .replace(/\r/g, '\n')
+                       .replace(ansiRegex, '')
+                       .trim();
+              
+              if (raw.includes('FAIL') || raw.includes('ERROR')) {
+                status = 'FAILED';
+              } else if (raw.includes('PASS') || raw.includes('OK')) {
+                status = 'PASSED';
+              }
+              
+              bodySection = `
+            **Status: ${status}**
+            
+            <details>
+            <summary>Raw Test Output</summary>
+            
+            \`\`\`
+            ${raw}
+            \`\`\`
+            </details>
+            `;
+            }
+            
+            const commitSha = context.payload.pull_request.head.sha;
+            const shortSha = commitSha.substring(0, 8);
+            const header = '### Test Results';
+            
+            const body = `${header}
+            
+            **Commit:** [\`${shortSha}\`](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${commitSha})
+            ${bodySection}
+            
+            ---
+            *Updated: ${new Date().toISOString()}*
+            `;
+            
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existing = comments.find(c => c.body.includes(header));
+              
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body
+                });
+                console.log('Updated existing PR comment');
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body
+                });
+                console.log('Created new PR comment');
+              }
+            } catch (error) {
+              console.error('Error posting PR comment:', error);
+            }
