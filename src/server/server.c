@@ -49,6 +49,18 @@ void *handle_client(void *arg) {
     return NULL;
 }
 
+static int parse_port_env(const char *name, int def_port) {
+    const char *s = getenv(name);
+    if (!s || !*s) return def_port;
+    char *end = NULL;
+    long v = strtol(s, &end, 10);
+    if (end == s || *end != '\0' || v < 1 || v > 65535) {
+        log_message(LOG_WARN, "Invalid %s='%s', falling back to %d", name, s, def_port);
+        return def_port;
+    }
+    return (int)v;
+}
+
 #ifndef TESTING
 int main() {
     setbuf(stdout, NULL);
@@ -57,7 +69,7 @@ int main() {
     display_memoradb_logo();
     printf("\n");
 
-    log_message(LOG_INFO, "MemoraDB Server started. Awaiting connections...");
+    log_message(LOG_INFO, "MemoraDB Server started successfully.");
 
     int server_fd;
     socklen_t client_addr_len;
@@ -68,13 +80,23 @@ int main() {
         log_message(LOG_ERROR, "Socket creation failed: %s", strerror(errno));
         return 1;
     }
-    log_message(LOG_INFO, "Socket created successfully.");
+    
+    int one = 1;
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 
-    struct sockaddr_in serv_addr = {
-        .sin_family = AF_INET,
-        .sin_port = htons(6379),
-        .sin_addr = { htonl(INADDR_ANY) },
-    };
+
+    int port = parse_port_env("MEMORADB_PORT", 6379);
+    const char *bind_ip = getenv("MEMORADB_BIND");
+    if (!bind_ip || !*bind_ip) bind_ip = "0.0.0.0";
+
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(port);
+    if (inet_pton(AF_INET, bind_ip, &serv_addr.sin_addr) != 1) {
+        log_message(LOG_ERROR, "Invalid MEMORADB_BIND='%s'", bind_ip);
+        return 1;
+    }
 
     if (bind(server_fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
         log_message(LOG_ERROR, "Bind failed: %s", strerror(errno));
@@ -87,10 +109,10 @@ int main() {
         return 1;
     }
 
-    log_message(LOG_INFO, "Waiting for clients to connect...");
-    client_addr_len = sizeof(client_addr);
+    log_message(LOG_INFO, "Awaiting connections...");
 
-    while (1) {
+    for(;;) {
+        client_addr_len = sizeof(client_addr);
         int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
         if (client_fd < 0) {
             log_message(LOG_ERROR, "Accept failed: %s", strerror(errno));
