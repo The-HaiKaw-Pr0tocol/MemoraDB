@@ -247,18 +247,24 @@ MemoraDB is a standalone C project: no external packages, no third-party framewo
 
 MemoraDB (as of `August 12th, 2025`) supports a broad initial set of commands, all parsed and executed according to the RESP3 protocol. This guarantees compatibility with Redis clients and libraries.
 
-| Command                                 | Arguments / Options                                        | Description                                 | RESP3 Type        |
-|------------------------------------------|------------------------------------------------------------|---------------------------------------------|-------------------|
-| `PING`                                  | none                                                       | Health check; returns `PONG`                | Simple String     |
-| `ECHO <message>`                        | message:string                                             | Echoes the input string                     | Bulk/String       |
-| `SET <key> <value> [PX <milliseconds>]` | key:string, value:string, PX:optional TTL in ms            | Sets key to value, with optional expiry      | Simple String     |
-| `GET <key>`                             | key:string                                                 | Retrieves value for key                     | Bulk/String or Null|
-| `RPUSH <list> <value>`                  | list:string, value:string                                  | Appends value to end of list                | Integer (length)  |
-| `LPUSH <list> <value>`                  | list:string, value:string                                  | Prepends value to start of list             | Integer (length)  |
-| `LRANGE <list> <start> <end>`           | list:string, start:int, end:int (can be negative)          | Returns list elements in interval           | Array             |
-| `LLEN <list>`                           | list:string                                                | Returns length of list                      | Integer           |
-| `DEL <key>`                             | key:string                                                 | Deletes a key (string or list)              | Integer (1 if deleted, 0 if not found) |
+| Command                                   | Arguments / Options                                           | Description                                     | RESP3 Type            |
+|-------------------------------------------|---------------------------------------------------------------|-------------------------------------------------|-----------------------|
+| `PING`                                    | none                                                          | Health check; returns `PONG`                    | Simple String         |
+| `ECHO <message>`                          | message:string                                                | Echoes the input string                         | Bulk/String           |
+| `SET <key> <value> [PX <milliseconds>]`   | key:string, value:string, PX:optional TTL in ms               | Sets key to value, with optional expiry         | Simple String         |
+| `GET <key>`                               | key:string                                                    | Retrieves value for key                         | Bulk/String or Null   |
+| `DEL <key> [key ...]`                     | one or more keys                                              | Deletes keys (string or list)                   | Integer (deleted cnt) |
+| `RPUSH <list> <value> [value ...]`        | list:string, one or more values                               | Appends value(s) to end of list                 | Integer (length)      |
+| `LPUSH <list> <value> [value ...]`        | list:string, one or more values                               | Prepends value(s) to start of list              | Integer (length)      |
+| `LRANGE <list> <start> <end>`             | list:string, start:int, end:int (can be negative)             | Returns list elements in interval               | Array                 |
+| `LLEN <list>`                             | list:string                                                    | Returns length of list                          | Integer               |
+| `LPOP <list> [count]`                     | list:string, optional count:int                                | Pops 1 or N elements from head                  | Bulk/String or Array  |
+| `BLPOP <list> <timeout>`                  | list:string, timeout:seconds (0 means block indefinitely)      | Blocking pop of 1 element from head             | Array or Null Bulk    |
 
+Notes:
+- SET with PX: expiry in milliseconds; expired keys are treated as nonexistent by GET.
+- LPOP with a count returns an array of popped elements; single-arg LPOP returns a single bulk string or Null.
+- BLPOP returns an array of two bulk strings: [list, element] when successful; returns Null Bulk on timeout. A timeout of 0 blocks indefinitely.
 
 > [!IMPORTANT]
 > The above table reflects all commands currently implemented, MemoraDB is still in ***Development*** mode, and will cover a much wider range of possible commands on release.
@@ -444,6 +450,7 @@ The project uses a sophisticated Makefile that manages compilation of all compon
 - `all`: Compiles both client and server executables
 - `test`: Compiles all test files with appropriate dependencies
 - `run-tests`: Executes the complete test suite with formatted output
+- `headers`: Refreshes author/date header metadata in C/C headers via build.sh
 - `clean`: Removes all generated binaries and temporary files
 
 The Makefile includes intelligent dependency management and handles the different compilation requirements for various components.
