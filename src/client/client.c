@@ -3,10 +3,10 @@
  * MemoraDB - In-Memory Database System
  * =====================================================
  * 
- * File                      : src/utils/client.c
+ * File                      : src/client/client.c
  * Module                    : Client Utilities
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/26/2025
+ * Last Updating Author      : shady0503
+ * Last Update               : 01/23/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -20,6 +20,7 @@
 #include "client.h"
 #include "resp_parser.h"
 #include "../utils/logo.h"
+#include "../history/history.h"
 
 int main(int argc, char *argv[]) {
     int client_fd;
@@ -72,19 +73,20 @@ int main(int argc, char *argv[]) {
     printf("[Client: INFO] Type commands (EXIT or QUIT to close the connection):\n");
     printf("=======================================================================\n");
 
-    //-- Interactive command loop --//
-    while (1) {
-        printf("MemoraDB> ");
-        fflush(stdout);
-        memset(command, 0, sizeof(command));
+    //-- Initialize command history --//
+    history_init();
 
-        if (fgets(command, sizeof(command), stdin) == NULL) {
-            break;
-        }
+    //-- Interactive command loop --//
+    char *line;
+    while ((line = linenoise("MemoraDB> ")) != NULL) {
+        //-- Copy to command buffer for compatibility with existing code --//
+        strncpy(command, line, sizeof(command) - 1);
+        command[sizeof(command) - 1] = '\0';
         
-        //-- Remove newline --//
-        command[strcspn(command, "\n")] = 0;
+        //-- Free the line returned by linenoise --//
+        linenoiseFree(line);
         
+        //-- Handle quit/exit commands --//
         if (strcasecmp(command, "quit") == 0 || strcasecmp(command, "exit") == 0) {
             printf("[Client: INFO] Disconnecting...\n");
             break;
@@ -94,6 +96,9 @@ int main(int argc, char *argv[]) {
         if (strlen(command) == 0) {
             continue;
         }
+
+        //-- Add command to history --//
+        history_add(command);
         
         char * argv[BUFFER_SIZE];
         int argc = 0;
@@ -143,9 +148,10 @@ int main(int argc, char *argv[]) {
             //-- Display raw response (for MemoraDB logging messages) --//
             printf("%s", buffer);
         }
-        
-        command[strlen(command) - 2] = '\0';
     }
+    
+    //-- Cleanup history --//
+    history_cleanup();
     
     close(client_fd);
     printf("[Client: INFO] Connection closed.\n");
