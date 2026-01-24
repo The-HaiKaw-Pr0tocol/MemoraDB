@@ -28,9 +28,13 @@ CFLAGS = -Wall -Wextra -I./src
 LDFLAGS = -lpthread
 
 # === Source files === #
-FILES = $(filter-out $(CLIENT_SRC) $(SERVER_SRC), $(wildcard src/**/*.c))
 CLIENT_SRC = src/client/client.c
 SERVER_SRC = src/server/server.c
+
+FILES := $(shell find src -type f -name '*.c' \
+  ! -path '$(CLIENT_SRC)' \
+  ! -path '$(SERVER_SRC)')
+
 
 CLIENT_OUT = client
 SERVER_OUT = server

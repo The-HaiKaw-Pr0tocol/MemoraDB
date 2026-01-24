@@ -20,7 +20,7 @@
 #include "client.h"
 #include "resp_parser.h"
 #include "../utils/logo.h"
-#include "../history/history.h"
+#include "history/history.h"
 
 int main(int argc, char *argv[]) {
     int client_fd;

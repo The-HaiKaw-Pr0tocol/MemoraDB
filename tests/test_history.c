@@ -18,7 +18,7 @@
 
  #include <assert.h>
 #include <string.h>
-#include "../src/history/history.h"
+#include "../src/client/history/history.h"
 #include "test_framework.h"
 
 static void reset_history() {

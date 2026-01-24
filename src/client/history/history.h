@@ -23,27 +23,32 @@
 #include <stddef.h>
 
 
-// Maximum history length
 #define HISTORY_MAX_LEN 100
 
 
-// Internal state for history management
 static char *last_command = NULL;
 static int initialized = 0;
 /**
  * Initialize the history system
  * Sets up linenoise history with max length of 100
+ * 
+ * @return void
  */
 void history_init(void);
 
 /**
  * Add a command to history with filtering
  * Skips empty commands and consecutive duplicates
+ * 
+ * @param cmd The command string to add
+ * @return int 0 on success, -1 on failure
  */
 int history_add(const char *cmd);
 
 /**
  * Cleanup history resources
+ * 
+ * @return void
  */
 void history_cleanup(void);
 

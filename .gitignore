@@ -1,4 +1,6 @@
 .vscode/
 .vs
-client
-server
+/client
+/server
+/server.exe
+/client.exe
