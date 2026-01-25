@@ -26,8 +26,23 @@
 #define HISTORY_MAX_LEN 100
 
 
+
 static char *last_command = NULL;
 static int initialized = 0;
+/** 
+ * Read a line from the command history
+ * 
+ * @param prompt The prompt string to display
+ * @return char* The read line or NULL on error
+ */
+char *history_readline(const char *prompt);
+/**
+ * Free a line read by history_readline
+ * 
+ * @param line The line to free
+ * @return void
+ */
+void history_free(char *line);
 /**
  * Initialize the history system
  * Sets up linenoise history with max length of 100

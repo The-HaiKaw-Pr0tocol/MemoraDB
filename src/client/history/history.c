@@ -50,6 +50,14 @@ static int strings_equal(const char *a, const char *b) {
     return strcmp(a, b) == 0;
 }
 
+char *history_readline(const char *prompt) {
+    return linenoise(prompt);
+}
+
+void history_free(char *line) {
+    linenoiseFree(line);
+}
+
 void history_init(void) {
     if (initialized) {
         return;

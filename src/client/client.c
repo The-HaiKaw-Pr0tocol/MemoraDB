@@ -78,13 +78,13 @@ int main(int argc, char *argv[]) {
 
     //-- Interactive command loop --//
     char *line;
-    while ((line = linenoise("MemoraDB> ")) != NULL) {
+    while ((line = history_readline("MemoraDB> ")) != NULL) {
         //-- Copy to command buffer for compatibility with existing code --//
         strncpy(command, line, sizeof(command) - 1);
         command[sizeof(command) - 1] = '\0';
         
-        //-- Free the line returned by linenoise --//
-        linenoiseFree(line);
+        //-- Free the line returned by history_readline --//
+        history_free(line);
         
         //-- Handle quit/exit commands --//
         if (strcasecmp(command, "quit") == 0 || strcasecmp(command, "exit") == 0) {
