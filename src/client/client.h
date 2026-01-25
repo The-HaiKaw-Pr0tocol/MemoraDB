@@ -3,10 +3,10 @@
  * MemoraDB - In-Memory Database System
  * =====================================================
  * 
- * File                      : src/utils/client.h
+ * File                      : src/client/client.h
  * Module                    : Client Utilities Header
- * Last Updating Author      : sch0penheimer
- * Last Update               : 07/19/2025
+ * Last Updating Author      : shady0503
+ * Last Update               : 01/23/2026
  * Version                   : 1.0.0
  * 
  * Description:
