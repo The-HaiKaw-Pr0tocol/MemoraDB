@@ -17,10 +17,14 @@
  * =====================================================
  */
 
+//-- Request POSIX.1-2008 APIs from system headers --//
+#define _POSIX_C_SOURCE 200809L
 #include "client.h"
 #include "resp_parser.h"
 #include "../utils/logo.h"
 #include "history/history.h"
+#include <sys/time.h>
+#include <time.h>
 
 int main(int argc, char *argv[]) {
     int client_fd;
@@ -115,14 +119,21 @@ int main(int argc, char *argv[]) {
             offset += snprintf(buffer + offset, BUFFER_SIZE - offset, "$%lu\r\n%s\r\n", strlen(argv[i]), argv[i]);
         }
 
+        //-- Capture start time before sending --//
+        struct timeval tv_start, tv_end;
+        gettimeofday(&tv_start, NULL);
+
         if (send(client_fd, buffer, offset, 0) < 0) {
             printf("[Client: ERROR] Failed to send command: %s\n", strerror(errno));
             break;
         }
-        
+
         //-- Receive response --//
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+
+        //-- Capture end time after receiving --//
+        gettimeofday(&tv_end, NULL);
         
         if (bytes_received < 0) {
             printf("[Client: ERROR] Failed to receive response: %s\n", strerror(errno));
@@ -135,8 +146,12 @@ int main(int argc, char *argv[]) {
         //-- Display response --//
         buffer[bytes_received] = '\0';
         
+        //-- Calculate round-trip latency --//
+        double latency_ms = (tv_end.tv_sec - tv_start.tv_sec) * 1000.0
+                          + (tv_end.tv_usec - tv_start.tv_usec) / 1000.0;
+
         //-- Check if response starts with RESP protocol markers --//
-        if (buffer[0] == '+' || buffer[0] == '-' || buffer[0] == ':' || 
+        if (buffer[0] == '+' || buffer[0] == '-' || buffer[0] == ':' ||
             buffer[0] == '$' || buffer[0] == '*') {
             //-- Parse and display RESP response --//
             int parsed = parse_and_display_resp(buffer);
@@ -148,6 +163,13 @@ int main(int argc, char *argv[]) {
             //-- Display raw response (for MemoraDB logging messages) --//
             printf("%s", buffer);
         }
+
+        //-- Display wall-clock timestamp and round-trip latency --//
+        struct tm tm_storage;
+        struct tm *tm_info = localtime_r(&tv_end.tv_sec, &tm_storage);
+        char time_buf[32];
+        strftime(time_buf, sizeof(time_buf), "%H:%M:%S", tm_info);
+        printf("[%s.%03ld] (%.2f ms)\n", time_buf, tv_end.tv_usec / 1000, latency_ms);
     }
     
     //-- Cleanup history --//
