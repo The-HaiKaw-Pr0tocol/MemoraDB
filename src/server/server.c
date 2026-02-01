@@ -22,7 +22,6 @@
 #include "../utils/hashTable.h"
 #include "../parser/parser.h"
 #include "../utils/logo.h"
-#include "client_context.h"
 
 void *handle_client(void *arg) {
     ClientContext *client_context = (ClientContext*)arg;

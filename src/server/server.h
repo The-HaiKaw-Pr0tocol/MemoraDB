@@ -5,8 +5,8 @@
  * 
  * File                      : src/server/server.h
  * Module                    : MemoraDB Server Header
- * Last Updating Author      : Weasel
- * Last Update               : 07/24/2025
+ * Last Updating Author      : youssefbouraoui1
+ * Last Update               : 02/01/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -49,5 +49,12 @@ extern int server_fd_global;
  * @return: NULL on completion
  */
 void *handle_client(void *arg);
+
+typedef struct {
+  int client_fd;
+  char ip_address[16]; // it is for ipv4 but if we want ipv6 we can use 46
+  int port; // to distinguish between different connections coming from the same
+            // client
+} ClientContext;
 
 #endif
