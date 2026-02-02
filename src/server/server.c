@@ -5,8 +5,8 @@
  * 
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : Weasel
- * Last Update               : 07/24/2025
+ * Last Updating Author      : Youssef Bouraoui
+ * Last Update               : 02/02/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -24,7 +24,11 @@
 #include "../utils/logo.h"
 
 void *handle_client(void *arg) {
-    int client_fd = *(int*)arg;
+    ClientContext *client_context = (ClientContext*)arg;
+    int client_fd = client_context->client_fd;
+    char client_ip[16];
+    strncpy(client_ip, client_context->ip_address, sizeof(client_ip));
+    int client_port = client_context->port;
     free(arg);
 
     char buffer[BUFFER_SIZE];
@@ -45,7 +49,7 @@ void *handle_client(void *arg) {
     }
 
     close(client_fd);
-    log_message(LOG_INFO, "Client disconnected");
+    log_message(LOG_INFO, "Client %s disconnected on port %d", client_ip, client_port);
     return NULL;
 }
 
@@ -119,16 +123,29 @@ int main() {
             continue;
         }
 
-        log_message(LOG_INFO, "Client connected");
+        ClientContext *client_context = malloc(sizeof(ClientContext));
+        if(!client_context){
+          log_message(LOG_ERROR, "Failed to allocate client context");
+          close(client_fd);
+          continue;
+        }
 
-        int *client_fd_ptr = malloc(sizeof(int));
-        *client_fd_ptr = client_fd;
+        client_context->client_fd = client_fd;
+
+        if (inet_ntop(AF_INET, &client_addr.sin_addr, client_context->ip_address, sizeof(client_context->ip_address)) == NULL) {
+          log_message(LOG_ERROR, "Failed to convert client IP: %s", strerror(errno));
+          strncpy(client_context->ip_address, "unknown", sizeof(client_context->ip_address));
+        }
+
+        client_context->port = ntohs(client_addr.sin_port);
+
+        log_message(LOG_INFO, "Client %s connected on port %d", client_context->ip_address, client_context->port);
 
         pthread_t thread;
-        if (pthread_create(&thread, NULL, handle_client, client_fd_ptr) != 0) {
+        if (pthread_create(&thread, NULL, handle_client, client_context) != 0) {
             log_message(LOG_ERROR, "pthread_create failed: %s", strerror(errno));
             close(client_fd);
-            free(client_fd_ptr);
+            free(client_context);
             continue;
         }
         pthread_detach(thread);
