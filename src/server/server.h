@@ -6,7 +6,7 @@
  * File                      : src/server/server.h
  * Module                    : MemoraDB Server Header
  * Last Updating Author      : youssefbouraoui1
- * Last Update               : 02/01/2026
+ * Last Update               : 02/02/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -43,18 +43,19 @@
 extern volatile int server_running;
 extern int server_fd_global;
 
+
+// ClientContext stores per-client connection metadata (socket fd + remote address info).
+typedef struct {
+  int client_fd;
+  char ip_address[16]; 
+  int port; 
+} ClientContext;
+
 /**
  * Handle client connection in separate thread
- * @param arg: Pointer to client file descriptor
+ * @param arg: Pointer to the client's ClientContext structure
  * @return: NULL on completion
  */
 void *handle_client(void *arg);
-
-typedef struct {
-  int client_fd;
-  char ip_address[16]; // it is for ipv4 but if we want ipv6 we can use 46
-  int port; // to distinguish between different connections coming from the same
-            // client
-} ClientContext;
 
 #endif

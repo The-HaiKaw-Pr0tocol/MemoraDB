@@ -6,7 +6,7 @@
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
  * Last Updating Author      : Youssef Bouraoui
- * Last Update               : 02/01/2026
+ * Last Update               : 02/02/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -49,7 +49,7 @@ void *handle_client(void *arg) {
     }
 
     close(client_fd);
-    log_message(LOG_INFO, "Client disconnected from %s:%d", client_ip, client_port);
+    log_message(LOG_INFO, "Client %s disconnected on port %d", client_ip, client_port);
     return NULL;
 }
 
@@ -139,7 +139,7 @@ int main() {
 
         client_context->port = ntohs(client_addr.sin_port);
 
-        log_message(LOG_INFO, "Client connected from %s:%d",client_context->ip_address,client_context->port);
+        log_message(LOG_INFO, "Client %s connected on port %d", client_context->ip_address, client_context->port);
 
         pthread_t thread;
         if (pthread_create(&thread, NULL, handle_client, client_context) != 0) {
