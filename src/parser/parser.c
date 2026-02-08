@@ -5,8 +5,8 @@
  * 
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : Kawtar TAIK
- * Last Update               : 08/11/2025
+ * Last Updating Author      : youssefbouraoui1
+ * Last Update               : 02/08/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -63,6 +63,7 @@ enum command_t identify_command(const char * cmd){
     if(strcasecmp(cmd,"LLEN") == 0) return CMD_LLEN;
     if(strcasecmp(cmd, "LPOP") == 0) return CMD_LPOP;
     if(strcasecmp(cmd, "BLPOP") == 0) return CMD_BLPOP;
+    if(strcasecmp(cmd,"TYPE")==0) return CMD_TYPE;
     return CMD_UNKNOWN;
 }
 
@@ -267,6 +268,14 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
                 }
             }
             dprintf(client_fd, ":%d\r\n", deleted_count);
+        }
+        break;
+    case CMD_TYPE:
+        if (token_count<2){
+            dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'TYPE', the 'TYPE' command expects a key\r\n");
+        }else{
+            const char *type = get_type(tokens[1]); 
+            dprintf(client_fd, "+%s\r\n", type); 
         }
         break;
     default:

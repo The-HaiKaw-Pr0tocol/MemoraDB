@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : mohamedriyad-bouzani-nw
- * Last Update               : 09/02/2025
+ * Last Updating Author      : youssefbouraoui1
+ * Last Update               : 02/08/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -103,5 +103,13 @@ int delete_key(const char *key);
  * @return Current time in milliseconds
  */
 long long current_millis(void);
+
+/**
+ * @brief Get the type of the value at key.
+ * 
+ * @param key The key to lookup.
+ * @return "string", "list", or "none" if not found.
+ */
+const char *get_type(const char *key);
 
 #endif // HASHTABLE_H

@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.c
  * Module                    : Hash Table
- * Last Updating Author      : Haitam Bidiouane
- * Last Update               : 07/29/2025
+ * Last Updating Author      : youssefbouraoui1
+ * Last Update               : 02/08/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -228,4 +228,30 @@ int delete_key(const char *key) {
     
     pthread_mutex_unlock(&hashtable_mutex);
     return 0;
+}
+
+const char *get_type(const char *key) {
+    pthread_mutex_lock(&hashtable_mutex);
+    unsigned int idx = hash(key);
+    Entry *entry = HASHTABLE[idx];
+    long long now = current_millis();
+    while (entry) {
+        if (strcmp(entry->key, key) == 0) {
+            if (entry->expiry > 0 && entry->expiry <= now) {
+                pthread_mutex_unlock(&hashtable_mutex);
+                return "none"; 
+            }
+            const char *typeStr = "none";
+            if (entry->type == VALUE_STRING) {
+                typeStr = "string";
+            } else if (entry->type == VALUE_LIST) {
+                typeStr = "list";
+            }
+            pthread_mutex_unlock(&hashtable_mutex);
+            return typeStr;
+        }
+        entry = entry->next;
+    }
+    pthread_mutex_unlock(&hashtable_mutex);
+    return "none";
 }
