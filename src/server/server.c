@@ -5,8 +5,8 @@
  * 
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : Youssef Bouraoui
- * Last Update               : 02/02/2026
+ * Last Updating Author      : shady0503
+ * Last Update               : 02/10/2026
  * Version                   : 1.0.0
  * 
  * Description:
