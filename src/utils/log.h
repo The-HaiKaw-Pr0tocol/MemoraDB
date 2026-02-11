@@ -2,25 +2,26 @@
  * =====================================================
  * MemoraDB - In-Memory Database System
  * =====================================================
- * 
+ *
  * File                      : src/utils/log.h
- * Module                    : Utilities
- * Last Updating Author      : kei077
- * Last Update               : 07/19/2025
+ * Module                    : utilities
+ * Last Updating Author      : shady0503
+ * Last Update               : 02/10/2026
  * Version                   : 1.0.0
- * 
+ *
  * Description:
- *  Helper methods for logging.
- * 
- * 
+ *  Header for the MemoraDB logging system. Provides a POSIX-compliant,
+ *  UI-friendly logging API with log-level based colorization and
+ *  printf-style formatting.
+ *
  * Copyright (c) 2025 MemoraDB Project
  * =====================================================
  */
+
 #ifndef MEMORADB_LOG_H
 #define MEMORADB_LOG_H
 
 #include <stdio.h>
-#include <time.h>
 
 /* ==================== Log Levels ==================== */
 typedef enum {
@@ -31,12 +32,15 @@ typedef enum {
 } log_level_t;
 
 /**
- * Logs a message with a specified log level.
- * 
- * @param level   The log level (INFO, WARN, ERROR, DEBUG).
- * @param format  The printf-style format string.
- * @param ...     Additional arguments for formatting.
+ * Log a formatted message with the given log level.
+ *
+ * All log output in MemoraDB MUST pass through this interface.
+ *
+ * @param level   Log level.
+ * @param format  printf-style format string.
+ * @param ...     Arguments for formatting.
  */
-void log_message(log_level_t level, const char *format, ...);
+void log_message(log_level_t level, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 
-#endif // MEMORADB_LOG_H
+#endif /* MEMORADB_LOG_H */
