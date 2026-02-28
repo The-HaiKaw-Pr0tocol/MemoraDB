@@ -5,8 +5,8 @@
  * 
  * File                      : src/server/server.h
  * Module                    : MemoraDB Server Header
- * Last Updating Author      : youssefbouraoui1
- * Last Update               : 02/02/2026
+ * Last Updating Author      : m0hamed541
+ * Last Update               : 02/28/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -19,6 +19,8 @@
 
 #ifndef MEMORADB_MAIN_H
 #define MEMORADB_MAIN_H
+
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +43,6 @@
 #define RESP_TERMINATOR_LEN 2
 
 extern volatile int server_running;
-extern int server_fd_global;
 
 
 // ClientContext stores per-client connection metadata (socket fd + remote address info).
