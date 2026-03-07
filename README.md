@@ -2,13 +2,14 @@
 
 ### Overview
 
-MemoraDB is an ultra-low-latency, in-memory key-value database engineered for applications where speed, reliability, and simplicity are paramount. Built in C with a focus on modern system design, MemoraDB leverages efficient data structures, atomic operations, and robust multi-threading to deliver microsecond-level performance.
+MemoraDB is an ultra-low-latency, **<ins>in-memory key-value database</ins>** engineered for applications where speed, reliability, and simplicity are paramount. Built in C with a focus on modern system design, MemoraDB leverages efficient data structures, atomic operations, and robust multi-threading to deliver microsecond-level performance.
 
-MemoraDB is designed to be a standalone in-memory database with all its client forms, but we decided to make it also fully compliant with the **RESP3 protocol**, meaning it can serve as a drop-in replacement for Redis in many use cases and is compatible with any modern Redis/RESP client, CLI, and tool. Whether you're building caching layers, real-time session storage, analytics backplanes, or embedded systems, MemoraDB is designed to be simple to integrate, easy to extend, and blazingly fast.
+MemoraDB is designed to be a _standalone_ in-memory database with all its client forms, but we decided to make it also fully compliant with the **RESP3 protocol**, meaning it can serve as a drop-in replacement for Redis in many use cases and is compatible with any modern Redis/RESP client, CLI, and tool.
 
 > Developed & Maintained by [The HaiKaw Pr0tocol](https://github.com/The-HaiKaw-Pr0tocol) organization.
 
 ## MemoraDB's Logo
+
 <div align="center">
     <img src="https://github.com/user-attachments/assets/3fc677fd-e5f2-4b1e-b851-9b93b6977b0e" alt="MemoraDB's Logo" width="1000">
 </div>
@@ -69,14 +70,14 @@ MemoraDB is designed to be a standalone in-memory database with all its client f
 ---
 
 ## Maintainers
-  
+
 <div align="center">
 
-  | GitHub Profile | Name                | Usernames |
-  |:--------------:|---------------------|-----------|
-  | <a href="https://github.com/kei077"><img src="https://avatars.githubusercontent.com/u/116844401?v=4" width="92px;" alt="kei077"></a> | Kawtar Taik        | <img src="https://github.com/user-attachments/assets/cd6bd36c-907c-49d2-a81b-5462c2e4142a" width="20" height="20" /> <a href="https://github.com/kei077"><img src="https://img.shields.io/badge/@kei077-8A2BE2?style=flat"/></a> |
-  | <a href="https://github.com/sch0penheimer"><img src="https://avatars.githubusercontent.com/u/109217308?s=400&u=2524c131a291962f93f92fecb48653a04b0621dc&v=4" width="92px;" alt="sch0penheimer"></a> | Haitam Bidiouane   | <img src="https://github.com/user-attachments/assets/cd6bd36c-907c-49d2-a81b-5462c2e4142a" width="20" height="20" /> <a href="https://github.com/sch0penheimer"><img src="https://img.shields.io/badge/@sch0penheimer-8A2BE2?style=flat"/></a> |
- 
+|                                                                                           GitHub Profile                                                                                            | Name             | Usernames                                                                                                                                                                                                                                      |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|                                <a href="https://github.com/kei077"><img src="https://avatars.githubusercontent.com/u/116844401?v=4" width="92px;" alt="kei077"></a>                                 | Kawtar Taik      | <img src="https://github.com/user-attachments/assets/cd6bd36c-907c-49d2-a81b-5462c2e4142a" width="20" height="20" /> <a href="https://github.com/kei077"><img src="https://img.shields.io/badge/@kei077-8A2BE2?style=flat"/></a>               |
+| <a href="https://github.com/sch0penheimer"><img src="https://avatars.githubusercontent.com/u/109217308?s=400&u=2524c131a291962f93f92fecb48653a04b0621dc&v=4" width="92px;" alt="sch0penheimer"></a> | Haitam Bidiouane | <img src="https://github.com/user-attachments/assets/cd6bd36c-907c-49d2-a81b-5462c2e4142a" width="20" height="20" /> <a href="https://github.com/sch0penheimer"><img src="https://img.shields.io/badge/@sch0penheimer-8A2BE2?style=flat"/></a> |
+
 </div>
 
 ---
@@ -153,153 +154,315 @@ MemoraDB is designed to be a standalone in-memory database with all its client f
 
 ## Table of Contents
 
-1. [Architecture and Design](#1-architecture-and-design)
-    - [System Architecture](#11-system-architecture)
-    - [Component Structure](#12-component-structure)
-    - [System Libraries](#13-system-libraries)
-2. [CLI and Client Documentation](#2-cli-and-client-documentation)
-    - [Supported Commands](#21-supported-commands)
-    - [Example Session](#22-example-session)
-3. [Core Components](#4-core-components)
-     - [Server Implementation](#41-server-implementation)
-     - [Client Implementation](#42-client-implementation)
-     - [Protocol Parser](#43-protocol-parser)
-     - [RESP Parser](#44-resp-parser)
-4. [Data Structures and Utilities](#5-data-structures-and-utilities)
-     - [Hash Table Implementation](#51-hash-table-implementation)
-     - [Linked List Implementation](#52-linked-list-implementation)
-     - [Logging System](#53-logging-system)
-     - [Project Branding](#54-project-branding)
-5. [Testing Framework](#6-testing-framework)
-     - [Test Infrastructure](#61-test-infrastructure)
-     - [Unit Tests](#62-unit-tests)
-     - [Integration Tests](#63-integration-tests)
-6. [Build System and Development](#7-build-system-and-development)
-     - [Makefile Configuration](#71-makefile-configuration)
-     - [Build Script](#72-build-script)
-     - [Development Workflow](#73-development-workflow)
-7. [Network Protocol Implementation](#8-network-protocol-implementation)
-     - [RESP Protocol Support](#81-resp-protocol-support)
-     - [Client-Server Communication](#82-client-server-communication)
-8. [Memory Management](#9-memory-management)
-
-
-## 1. Architecture and Design
-
-### 1.1 System Architecture
-
-|![MemoraDB's Architecture](https://github.com/user-attachments/assets/7e5181d7-f350-4518-95f1-a348927b68ef)|
-|:----------------------------------:|
-|MemoraDB's System Architecture|
-
-MemoraDB’s architecture is modular and layered, emphasizing clarity, maintainability, and extensibility. Below is a detailed breakdown of its core layers and components:
-
-#### 1. Utilities Layer
-- **Build System**: Automated with Makefile and build scripts for seamless compilation and setup.
-- **Testing Framework**: Comprehensive unit tests (hash tables, lists) and integration tests (protocol parsing, system behavior) ensure reliability for every developed feature.
-
-#### 2. Client Layer
-- **CLI Client**: Provides a command-line interface for direct user interaction. It's the official MemoraDB Client (Only a C-Client for now).
-- **RESP Client**: Any contemporary Redis client implememting RESP3.
-
-#### 3. Server Layer
-- **Memory Storage Layer**
-  - **HashTable Storage**: In-memory key-value store optimized for fast lookups and updates.
-  - **List Utilities**: Supports advanced data types and operations (e.g., linked lists for queues/stacks).
-- **Command Processing Layer**
-  - **Command Router**: Directs incoming commands to appropriate handlers.
-  - **Command Handlers**: Execute logic for supported commands (GET, SET, LIST operations, etc.).
-- **Core Parser Layer**
-  - **Protocol Parser**: Decodes incoming RESP  messages.
-  - **Token Parser & Type Detector**: Tokenizes commands and determines types for accurate execution.
-- **Network Protocol Layer**
-  - **TCP Server Socket**: Manages network communication using POSIX-compliant sockets.
-  - **Connection Manager**: Handles client connections, typically with a thread-per-client model for concurrency.
-  - **RESP Serializer**: Encodes responses in RESP format for protocol compliance.
-
-#### Design Principles
-- **Layered Separation**: Each layer has a distinct responsibility, reducing coupling and simplifying testing and extension.
-- **Protocol Compliance**: Full RESP support ensures interoperability with all Redis tools / clients.
-- **Thread-per-Client Model**: Enables concurrent client handling for scalability.
-
-MemoraDB is architected for robustness and extensibility, with clear separation between storage, protocol handling, command processing, and utilities.
-
-### 1.2 Component Structure
-
-The project is organized into logical modules that encapsulate specific functionality:
-
-```
-src/
-├── client/          ##-- MemoraDB Testing Client --##
-├── server/          ##-- MemoraDB TCP Server --##
-├── parser/          ##-- Core RESP3 parsing logic --##
-└── utils/           ##-- Utility functions & data structures --##
-```
-
-Each module maintains clear interfaces and minimal dependencies, facilitating independent development and testing of individual components.
-
-### 1.3 System Libraries
-
-MemoraDB, and all of its core features: client, server, protocol handling, and testing infrastructure are implemented in standard C using only system libraries and POSIX APIs.
-
-#### 1.3.1 Build and System Requirements:
-
-- **Compiler:** GCC (or any modern C compiler supporting C99/C11)
-- **Build System:** GNU Make (Makefile) and standard Bash (`build.sh`)
-- **Supported OS:** Any POSIX-compliant system (Linux, BSD, macOS, etc.)
-
-#### 1.3.2 System Libraries Used:
-
-- `<stdio.h>` : Standard input/output
-- `<stdlib.h>` : Memory allocation, process control
-- `<string.h>` : String handling
-- `<unistd.h>` : POSIX system calls and threading
-- `<time.h>` : Time/date functions
-- `<stdarg.h>` : Variadic arguments
-
-#### 1.3.3 External Linker Flags:
-- `-lpthread` — Used for multi-threading (required for thread-per-client server model)
-
-#### 1.3.4 Third-Party Libraries:
-- ***None***
-
-MemoraDB is a standalone C project: no external packages, no third-party frameworks, no dynamic libraries, and no package managers required. All dependencies are either standard system libraries or POSIX APIs, guaranteeing straightforward compilation and deployment in embedded, server, and desktop environments.
+1. [MemoraDB's Architecture](#1-memoradbs-architecture)
+   - [System Overview](#11-system-overview)
+   - [Design Constraints](#12-design-constraints)
+2. [RESP3 Protocol](#2-resp3-protocol)
+   - [Wire Format](#21-wire-format)
+   - [Supported Types](#22-supported-types)
+   - [Command Reference](#23-command-reference)
+3. [Server Internals](#3-server-internals)
+   - [Connection Handling](#31-connection-handling)
+   - [Command Pipeline](#32-command-pipeline)
+   - [Concurrency Model](#33-concurrency-model)
+4. [Storage Engine](#4-storage-engine)
+   - [Hash Table](#41-hash-table)
+   - [Linked Lists](#42-linked-lists)
+   - [Key Expiry (TTL)](#43-key-expiry-ttl)
+5. [Client](#5-client)
+   - [CLI Usage](#51-cli-usage)
+   - [Example Session](#52-example-session)
+6. [Build & Test](#6-build--test)
+   - [Requirements](#61-requirements)
+   - [Build Targets](#62-build-targets)
+   - [Docker](#63-docker)
+   - [Test Suite](#64-test-suite)
 
 ---
 
+7. [Contributing](#7-contributing)
 
-## 2. CLI and Client Documentation
+<br />
 
-### 2.1 Supported Commands
+## 1. Architecture
 
-MemoraDB (as of `August 12th, 2025`) supports a broad initial set of commands, all parsed and executed according to the RESP3 protocol. This guarantees compatibility with Redis clients and libraries.
+### 1.1 System Overview
 
-| Command                                   | Arguments / Options                                           | Description                                     | RESP3 Type            |
-|-------------------------------------------|---------------------------------------------------------------|-------------------------------------------------|-----------------------|
-| `PING`                                    | none                                                          | Health check; returns `PONG`                    | Simple String         |
-| `ECHO <message>`                          | message:string                                                | Echoes the input string                         | Bulk/String           |
-| `SET <key> <value> [PX <milliseconds>]`   | key:string, value:string, PX:optional TTL in ms               | Sets key to value, with optional expiry         | Simple String         |
-| `GET <key>`                               | key:string                                                    | Retrieves value for key                         | Bulk/String or Null   |
-| `DEL <key> [key ...]`                     | one or more keys                                              | Deletes keys (string or list)                   | Integer (deleted cnt) |
-| `RPUSH <list> <value> [value ...]`        | list:string, one or more values                               | Appends value(s) to end of list                 | Integer (length)      |
-| `LPUSH <list> <value> [value ...]`        | list:string, one or more values                               | Prepends value(s) to start of list              | Integer (length)      |
-| `LRANGE <list> <start> <end>`             | list:string, start:int, end:int (can be negative)             | Returns list elements in interval               | Array                 |
-| `LLEN <list>`                             | list:string                                                    | Returns length of list                          | Integer               |
-| `LPOP <list> [count]`                     | list:string, optional count:int                                | Pops 1 or N elements from head                  | Bulk/String or Array  |
-| `BLPOP <list> <timeout>`                  | list:string, timeout:seconds (0 means block indefinitely)      | Blocking pop of 1 element from head             | Array or Null Bulk    |
-
-Notes:
-- SET with PX: expiry in milliseconds; expired keys are treated as nonexistent by GET.
-- LPOP with a count returns an array of popped elements; single-arg LPOP returns a single bulk string or Null.
-- BLPOP returns an array of two bulk strings: [list, element] when successful; returns Null Bulk on timeout. A timeout of 0 blocks indefinitely.
+<div align="center">
+  <img src="./assets/MemoraDB_project_architecture.png" alt="MemoraDB Architecture" width="900" />
+  <br/>
+  <i>Figure 1: MemoraDB system architecture : Layered decomposition from network I/O through protocol parsing, storage, and shared utilities.</i>
+</div>
 
 > [!IMPORTANT]
-> The above table reflects all commands currently implemented, MemoraDB is still in ***Development*** mode, and will cover a much wider range of possible commands on release.
+> This represents our current architectural vision for MemoraDB. As development progresses, this design may evolve based on implementation discoveries.
 
+<br />
 
-### 2.2 Example Session
+MemoraDB is organized into four layers, each with a single responsibility:
 
-The following example demonstrates the basic functionality available in MemoraDB through a typical client session:
+| **_Network layer_** : `server.c` and raw POSIX sockets. This is the outermost boundary of the process: it owns the TCP accept loop, spawns one `pthread_create` per inbound connection, and performs all `recv()` / `send()` I/O. Nothing above this layer ever touches a file descriptor directly.
+
+| **_Protocol layer_** : `parser.c` (server-side) and `resp_parser.c` (client-side). Inbound bytes are deserialized from RESP wire format into a flat token array; outbound responses are serialized back into RESP before being handed to the network layer. The two parsers are independent compilation units and share no state.
+
+| **_Storage layer_** : `hashTable.c` and `list.c`. All persistent (in-memory) state lives here: a fixed-size hash table of 1024 buckets with separate chaining, and singly-linked lists for the `LIST` data type. TTL bookkeeping is co-located with the entries themselves.
+
+| **_Utilities layer_** : `log.c` (leveled logging), `logo.c` (startup banner), and the bundled `linenoise.c` line-editing library. These are leaf dependencies, they are consumed by upper layers but depend on nothing in the project.
+
+The end-to-end data flow is: **socket → RESP decode → tokenize → dispatch → storage op → RESP encode → socket**.
+
+### 1.2 Design Constraints
+
+MemoraDB is deliberately narrow in scope. Every design decision favors **simplicity and auditability** over feature breadth: the codebase should be small enough that a single engineer can hold the entire system in their head. The constraints below are intentional trade-offs, not oversights; each one eliminates a class of complexity at the cost of a well-understood limitation.
+
+<div align="center">
+
+| Constraint                         | Detail                                                                                                                           |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Zero third-party dependencies**  | Only libc, POSIX, and `-lpthread`. No package manager, no vendored libs beyond bundled linenoise.                                |
+| **POSIX-only**                     | Uses `<sys/socket.h>`, `<pthread.h>`, `<unistd.h>`, `<arpa/inet.h>`. Not portable to native Win32 without a compatibility layer. |
+| **Single-process, multi-threaded** | One `pthread_create` per accepted connection. No fork, no event loop (epoll/kqueue).                                             |
+| **Fixed-size hash table**          | `TABLE_SIZE = 1024` buckets, separate chaining. No dynamic resizing at runtime.                                                  |
+| **Lazy expiry**                    | Keys with a TTL are evicted on access (`get_value` checks `current_millis()`), not by a background reaper.                       |
+
+</div>
+
+---
+
+## 2. RESP Protocol
+
+MemoraDB implements the **RESP** (REdis Serialization Protocol) wire format, making it compatible with `redis-cli`, client libraries in every major language, and any tool that speaks RESP.
+
+### 2.1 Wire Format
+
+<div align="center">
+  <img src="./assets/1-RESP3_diagram.png" alt="RESP Encode / Decode Flow" width="850" />
+  <br/>
+  <i>Figure 2: RESP wire lifecycle : Encoding on the client side, byte transmission over TCP, and decoding on the server side.</i>
+</div>
+
+<br />
+
+Every RESP message is a sequence of bytes terminated by `\r\n`. The first byte identifies the type:
+
+<div align="center">
+
+| Prefix | Type          | Example (wire bytes)               |
+| ------ | ------------- | ---------------------------------- |
+| `+`    | Simple String | `+OK\r\n`                          |
+| `-`    | Error         | `-ERR unknown command\r\n`         |
+| `:`    | Integer       | `:42\r\n`                          |
+| `$`    | Bulk String   | `$5\r\nhello\r\n`                  |
+| `$-1`  | Null Bulk     | `$-1\r\n`                          |
+| `*`    | Array         | `*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n` |
+
+</div>
+
+Clients send commands as RESP arrays of bulk strings. The server responds with the appropriate RESP type per command.
+
+### 2.2 Supported Types
+
+The server-side parser (`parser.c`) handles inbound RESP arrays. The client-side parser (`resp_parser.c`) decodes all five response types into a `resp_object_t` union:
+
+```c
+typedef enum {
+    RESP_SIMPLE_STRING,    /* '+' */
+    RESP_ERROR,            /* '-' */
+    RESP_INTEGER,          /* ':' */
+    RESP_BULK_STRING,      /* '$' */
+    RESP_ARRAY,            /* '*' */
+    RESP_NULL,            /* '$-1' */
+    RESP_UNKNOWN
+} resp_type_t;
+```
+
+### 2.3 Command Reference
+
+All commands below are implemented and tested. RESP encoding/decoding is handled transparently, any RESP-compatible client can issue these commands.
+
+<div align="center">
+
+| Command  | Syntax                        | Response Type       | Description                                                              |
+| -------- | ----------------------------- | ------------------- | ------------------------------------------------------------------------ |
+| `PING`   | `PING`                        | Simple String       | Returns `+PONG\r\n`. Health check.                                       |
+| `ECHO`   | `ECHO <msg>`                  | Bulk String         | Returns the message verbatim.                                            |
+| `SET`    | `SET <key> <val> [PX ms]`     | Simple String       | Stores `key → val`. Optional `PX` sets TTL in milliseconds.              |
+| `GET`    | `GET <key>`                   | Bulk String / Null  | Returns value or `$-1\r\n` if missing/expired.                           |
+| `DEL`    | `DEL <key> [key …]`           | Integer             | Returns count of keys actually deleted.                                  |
+| `TYPE`   | `TYPE <key>`                  | Simple String       | Returns `string`, `list`, or `none`.                                     |
+| `RPUSH`  | `RPUSH <key> <val> [val …]`   | Integer             | Appends to tail. Returns new list length.                                |
+| `LPUSH`  | `LPUSH <key> <val> [val …]`   | Integer             | Prepends to head. Returns new list length.                               |
+| `LRANGE` | `LRANGE <key> <start> <stop>` | Array               | Returns elements in `[start, stop]`. Negative indices supported.         |
+| `LLEN`   | `LLEN <key>`                  | Integer             | Returns list length, or `0` if key missing.                              |
+| `LPOP`   | `LPOP <key> [count]`          | Bulk String / Array | Pops from head. With `count`, returns an array.                          |
+| `BLPOP`  | `BLPOP <key> <timeout>`       | Array / Null        | Blocking pop. `timeout=0` blocks indefinitely. Returns `[key, element]`. |
+
+</div>
+
+> [!IMPORTANT]
+> This table also reflects the current implementation. MemoraDB is under active development, additional commands will land before the first stable release.
+
+---
+
+## 3. Server Internals
+
+### 3.1 Connection Handling
+
+On startup, the server creates a TCP socket, binds it to `0.0.0.0:DEFAULT_PORT` (`6379`), and enters a blocking `listen()` with a backlog depth of `CONNECTION_BACKLOG` (5). From that point on, the main thread does nothing but **accept**.
+
+Every successful `accept()` heap-allocates a `ClientContext` that carries the client's file descriptor, remote IP, and port:
+
+```c
+typedef struct {
+    int   client_fd;
+    char  ip_address[16];
+    int   port;
+} ClientContext;
+```
+
+A **detached pthread** is then spawned via `pthread_create` + `pthread_detach`, running `handle_client()`. Ownership of the `ClientContext` transfers to the new thread, it is responsible for calling `free()` before returning. The main thread never touches the struct again.
+
+**Graceful shutdown** is handled by a `SIGINT` / `SIGTERM` signal handler that flips the `volatile int server_running` flag to `0`. The accept loop tests this flag on every iteration and breaks out cleanly, closing the listening socket on its way down.
+
+### 3.2 Command Pipeline
+
+Inside each client thread, every iteration of the read loop follows a strict four-stage pipeline:
+
+```
+recv(client_fd, buffer, BUFFER_SIZE)
+        │
+        ▼
+parse_command(buffer, tokens[], MAX_TOKENS)   ← RESP array → token list
+        │
+        ▼
+identify_command(tokens[0])                   ← returns command_t enum
+        │
+        ▼
+dispatch_command(client_fd, tokens, count)    ← executes + writes RESP response
+```
+
+- **Stage 1: <ins>Read.</ins>** A blocking `recv()` fills a stack-allocated `buffer[BUFFER_SIZE]` (1 024 bytes). No buffering or reassembly across calls, one `recv` maps to one command.
+
+- **Stage 2: <ins>Parse.</ins>** `parse_command()` walks the RESP array header (`*N\r\n`) and extracts each bulk-string payload into a flat `char *tokens[]` array, up to `MAX_TOKENS` (16) entries.
+
+- **Stage 3: <ins>Identify.</ins>** `identify_command(tokens[0])` performs a case-insensitive match against the supported command set and returns a `command_t` enum value (`CMD_PING`, `CMD_SET`, …, `CMD_UNKNOWN`).
+
+- **Stage 4: <ins>Dispatch.</ins>** `dispatch_command()` switches on that enum and calls directly into the storage layer: `set_value`, `get_value`, `delete_key`, the list operations, etc. The RESP-encoded response is written back to the client socket within the same function.
+
+### 3.3 Concurrency Model
+
+MemoraDB follows a **thread-per-connection** model. There is no connection pooling, no event-driven multiplexing, and no pre-forked worker pool. Each client gets its own stack, its own `buffer[]`, and its own execution context.
+
+The global hash table `HASHTABLE[TABLE_SIZE]` is guarded by a **single `pthread_mutex_t`**. This is _not_ a per-bucket lock: every read or write to the store acquires the same mutex, holds it for the duration of the operation (including any `malloc` / `free` inside), and releases it on return. The design prioritizes correctness and simplicity over throughput.
+
+**Blocking operations** deserve special mention. `BLPOP` puts the calling thread into a `pthread_cond_timedwait` loop: it releases the global mutex, sleeps until a condition variable is signaled (by an `LPUSH` / `RPUSH` on the same key) or the timeout elapses, then reacquires the mutex before returning.
+
+> [!NOTE] 
+> The single-mutex design is correct but serializes all storage access. Under high concurrency this becomes a bottleneck. Per-bucket or striped locking is a planned improvement.
+
+---
+
+## 4. Storage Engine
+
+### 4.1 Hash Table
+
+<div align="center">
+  <img src="./assets/2-HashTable-struct.png" alt="Hash Table Structure" width="850" />
+  <br/>
+  <i>Figure 3: Hash table memory layout : A fixed 1024-bucket array with separate-chaining entries and a polymorphic value union.</i>
+</div>
+
+<<<<<<< HEAD
+<br/>
+
+=======
+>>>>>>> f9b265bfe6b5e09765e4614395748d1c990aa761
+The primary data store is a statically-sized, open-addressed hash table defined in `hashTable.c`. The top-level symbol is a plain C array of entry pointers:
+
+```c
+Entry *HASHTABLE[TABLE_SIZE];
+```
+
+Each slot points to the head of a singly-linked collision chain. Entries are heap-allocated and prepended on insertion:
+
+```c
+typedef struct Entry {
+    char          *key;
+    value_type_t   type;
+    union {
+        char *string_value;
+        List *list_value;
+    } data;
+    long long      expiry;
+    struct Entry  *next;
+} Entry;
+```
+
+**Hashing.** The `hash()` function computes an unsigned integer from the key string and reduces it with `% TABLE_SIZE`. The result is a bucket index into `HASHTABLE[]`. Because the table is never resized, the bucket count is fixed for the lifetime of the process.
+
+**Polymorphic values.** Every `Entry` carries a `value_type_t` tag, either `VALUE_STRING` or `VALUE_LIST`, alongside a C `union` that holds the actual payload. String keys store a heap-allocated `char *`; list keys store a pointer to a `List` struct. The tag is checked before every access, and the `TYPE` command exposes it to clients as `"string"`, `"list"`, or `"none"`.
+
+### 4.2 Linked Lists
+
+List-type values are backed by a **singly-linked list** with explicit head _and_ tail pointers, plus a cached length counter:
+
+```c
+typedef struct ListNode {
+    char            *value;
+    struct ListNode *next;
+} ListNode;
+
+typedef struct List {
+    ListNode *head;
+    ListNode *tail;
+    size_t    length;
+} List;
+```
+
+The dual-pointer design keeps both **push-right** (`list_rpush`, append at tail) and **push-left** (`list_lpush`, prepend at head) at **_O(1)_**. Popping from the head (`lpop_element`) is also **_O(1)_** since it only needs to advance the head pointer and free the old node.
+
+`lpop_multiple(list, n)` iterates _n_ times and is therefore **_O(N)_**. `list_range(list, start, end)` walks from the head to the _start_ index and then copies elements through _end_, yielding **_O(start + count)_**.
+
+The `length` field is maintained incrementally by every push and pop, so `list_length()`, and by extension the `LLEN` command, returns in **_O(1)_** without traversal.
+
+### 4.3 Key Expiry (TTL)
+
+<div align="center">
+  <img src="./assets/3-lazy_expiration.png" alt="Lazy Key Expiration" width="850" />
+  <br/>
+  <i>Figure 4: Lazy TTL expiration : Expired keys are evicted at read time rather than by a background sweep thread.</i>
+</div>
+
+<<<<<<< HEAD
+<br/>
+
+=======
+>>>>>>> f9b265bfe6b5e09765e4614395748d1c990aa761
+When a client issues `SET key value PX <ms>`, the server computes `expiry = current_millis() + ms` and stores it in the `Entry`'s `expiry` field. A value of `0` means "no TTL : Live Forever."
+
+Expiry is **lazy**: there is no dedicated reaper thread, no periodic scan, and no timer wheel. Instead, every access path checks the clock:
+
+1. `get_value(key)` reads `entry->expiry` and compares it to `current_millis()`. If the deadline has passed, it removes the entry from the chain, frees all associated memory, and returns `NULL`, as if the key never existed.
+2. `delete_key()` performs the same staleness check before attempting deletion.
+3. List operations (`get_list_if_exists`, `get_or_create_list`) apply the same guard.
+
+**Trade-off.** Lazy eviction means zero background CPU cost, but stale keys occupy memory until something _reads_ them. Under write-heavy workloads with many short-lived keys, resident memory can grow well beyond the live dataset size. A background sampling eviction pass (similar to Redis's `activeExpireCycle`) is a planned future addition.
+
+---
+
+## 5. Client
+
+### 5.1 CLI Usage
+
+The bundled CLI client (`src/client/client.c`) connects to `127.0.0.1:6379` over TCP and provides:
+
+- **Line editing** via the bundled linenoise library (arrow keys, Ctrl-A/E, etc.).
+- **Persistent history** across sessions (`history.c`).
+- **RESP response parsing**: raw RESP bytes are decoded into human-readable output by `parse_and_display_resp()`.
+
+Type `exit` or press `Ctrl-C` to disconnect.
+
+### 5.2 Example Session
 
 ```
 $ ./client
@@ -312,13 +475,6 @@ MemoraDB> ECHO "Hello, MemoraDB!"
 $16
 Hello, MemoraDB!
 
-MemoraDB> PING
-+PONG
-
-MemoraDB> ECHO "Testing protocol compliance"
-$27
-Testing protocol compliance
-
 MemoraDB> SET mykey myvalue
 +OK
 
@@ -326,232 +482,120 @@ MemoraDB> GET mykey
 $7
 myvalue
 
-MemoraDB> RPUSH mylist first
-:1
+MemoraDB> SET temp 42 PX 5000
++OK
+
+MemoraDB> TYPE mykey
++string
+
+MemoraDB> RPUSH mylist first second third
+:3
 
 MemoraDB> LRANGE mylist 0 -1
-*1
+*3
+$5
+first
+$6
+second
+$5
+third
+
+MemoraDB> LPOP mylist
 $5
 first
 
+MemoraDB> LLEN mylist
+:2
+
 MemoraDB> DEL mykey
 :1
+
+MemoraDB> GET mykey
+$-1
 
 MemoraDB> exit
 Connection closed.
 ```
 
-The session demonstrates some of the core commands currently available in MemoraDB. All responses follow the RESP protocol format, ensuring compatibility with standard Redis clients. The PING command provides a simple health check mechanism, while ECHO allows for testing string transmission and protocol compliance.
+---
+
+## 6. Build & Test
+
+### 6.1 Requirements
+
+1. **Compiler** : GCC or Clang, C99 or later. Any POSIX-compliant C compiler that supports `-Wall -Wextra` will work; no GNU extensions are required.
+
+2. **Build system** : GNU Make ≥ 3.81. The Makefile uses `$(shell find …)` for source discovery, which is a POSIX utility wrapped by Make.
+
+3. **Operating system** : Any POSIX-compliant OS: Linux, macOS, FreeBSD, etc. There is no native Windows support; use WSL or a compatibility layer.
+
+4. **Linker flags** : `-lpthread` is the only external flag and is added automatically by the Makefile.
+
+**Third-party libraries** : _none_. The project compiles from a clean checkout with no downloads, no package manager, and no vendored code beyond the bundled linenoise.
+
+### 6.2 Build Targets
+
+```bash
+make                  #- builds ./server and ./client (runs headers target first) -#
+make test                   #- compiles all test binaries under tests/ -#
+make run-tests             #- compiles and executes the full test suite -#
+make headers      #- refreshes file-header doc/metadata (author, date) via build.sh -#
+make clean               #- removes server, client, and all test binaries -#
+```
+
+The Makefile compiles every `.c` under `src/` (excluding `client.c` and `server.c` themselves) as shared object files linked into both executables:
+
+```makefile
+FILES := $(shell find src -type f -name '*.c' \
+  ! -path '$(CLIENT_SRC)' \
+  ! -path '$(SERVER_SRC)')
+```
+
+### 6.3 Docker
+
+The Dockerfile builds the server binary inside the container and exposes port `6379`.
+
+```bash
+docker build -t memoradb .
+docker run -p 6379:6379 memoradb
+```
+
+### 6.4 Test Suite
+
+The custom test framework (`test_framework.c`) provides assertion macros, automatic pass/fail counting, and colored terminal output.
+
+<div align="center">
+
+| Test file            | Scope       | What it covers                                                                           |
+| -------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| `test_hashtable.c`   | Unit        | Insert, get, delete, overwrite, expiry, type detection                                   |
+| `test_list.c`        | Unit        | rpush, lpush, lpop, lpop_multiple, lrange, edge cases                                    |
+| `test_parser.c`      | Unit        | RESP tokenization, `identify_command()` for all `command_t` variants                     |
+| `test_log.c`         | Unit        | Log level formatting and output                                                          |
+| `test_history.c`     | Unit        | History file persistence                                                                 |
+| `test_ping_echo.c`   | Integration | PING / ECHO over a real loopback socket (compiles with `-DTESTING` and links `server.c`) |
+| `integration_test.c` | Integration | Multi-command sequences across components                                                |
+
+</div>
+
+```bash
+make run-tests    #- compile + run everything, prints per-suite and final summary -#
+```
 
 ---
 
-## 4. Core Components
+## 7. Contributing
 
-### 4.1 Server Implementation
+We welcome contributions to MemoraDB. Before opening a PR or issue, please review:
 
-The server component (server) implements the core database server functionality, including connection management, request processing, and response generation. The server is designed to handle multiple client connections efficiently while maintaining data consistency.
+- [**Contributing Guide**](./CONTRIBUTING.md) : Code style, commit conventions, workflow.
+- [**PR Template**](.github/PR_TEMPLATE.md) : Required sections for every pull request.
+- [**Bug Report**](.github/ISSUE_TEMPLATE/bug_report.md) : Reproduction steps, expected vs. actual behavior.
+- [**Feature Request**](.github/ISSUE_TEMPLATE/feature_request.md) : Mmotivation, proposed design.
+- [**Discussions**](https://github.com/The-HaiKaw-Pr0tocol/MemoraDB/discussions) : Questions, design proposals, general Q&A.
 
-**Key Responsibilities:**
-- TCP socket management and client connection handling
-- Request routing and command processing
-- Session management and client state tracking
-- Error handling and graceful shutdown procedures
+<br />
 
-The server implementation provides the foundation for the database system, managing all aspects of client communication and ensuring that requests are processed correctly and responses are delivered reliably.
-
-### 4.2 Client Implementation
-
-The client component (client) serves dual purposes: it provides a client library for connecting to MemoraDB servers and serves as a testing tool for validating server functionality. The client implementation demonstrates proper usage patterns and provides reference code for integrating with MemoraDB.
-
-**Features:**
-- Connection establishment and management
-- Command serialization and transmission
-- Response parsing and handling
-- Error recovery and connection pooling
-
-The client implementation follows the same architectural principles as the server, ensuring consistency in code quality and design patterns throughout the project.
-
-### 4.3 Protocol Parser
-
-The protocol parser (parser) implements the core parsing logic for the RESP protocol. This component handles the low-level details of protocol parsing, including tokenization, type detection, and data extraction.
-
-The parser is designed to be stateless and reentrant, allowing it to be used safely in different contexts throughout the application. It handles all aspects of RESP protocol compliance, including proper error detection and recovery.
-
-### 4.4 RESP Parser
-
-The RESP parser (resp_parser.c) provides specialized functionality for parsing and serializing RESP protocol messages. This component works in conjunction with the core parser to provide complete protocol support.
-
-**Capabilities:**
-- Parsing of all RESP data types (simple strings, errors, integers, bulk strings, arrays)
-- Incremental parsing for streaming data
-- Efficient serialization of response data
-- Comprehensive error handling and validation
-
-The RESP parser ensures full compatibility with Redis clients by implementing the protocol specification exactly as defined in the Redis documentation.
-
-## 5. Data Structures and Utilities
-
-### 5.1 Hash Table Implementation
-
-The hash table implementation (hashTable.c) provides the primary storage mechanism for key-value pairs in MemoraDB. The implementation is optimized for performance and memory efficiency while providing the flexibility needed for database operations.
-
-**Technical Specifications:**
-- Separate chaining collision resolution for predictable performance
-- Dynamic resizing based on load factor to maintain efficiency
-- Optimized hash function for string keys
-- Memory-efficient bucket management
-
-The hash table automatically adjusts its size based on usage patterns, ensuring that performance remains consistent as the dataset grows or shrinks. The implementation includes comprehensive error handling and memory management to prevent leaks and ensure reliability.
-
-### 5.2 Linked List Implementation
-
-The linked list implementation (list.c) provides a fundamental data structure used throughout the codebase for managing dynamic collections. The implementation supports various list operations required by the database system.
-
-**Features:**
-- Efficient insertion and deletion operations
-- Support for both forward and backward traversal
-- Memory-efficient node management
-- Generic data storage capabilities
-
-The linked list serves as a building block for more complex data structures and provides the flexibility needed for implementing various database features.
-
-### 5.3 Logging System
-
-The logging system (log.c) provides comprehensive logging capabilities for debugging, monitoring, and troubleshooting. The system includes multiple log levels and formatting options to support different operational requirements.
-
-**Logging Capabilities:**
-- Multiple log levels (DEBUG, INFO, WARNING, ERROR)
-- Configurable output destinations
-- Timestamp and context information
-- Performance-optimized logging operations
-
-The logging system is designed to have minimal impact on performance while providing the information needed for effective system monitoring and debugging.
-
-### 5.4 Project Branding
-
-The project branding component (logo.c) provides visual identity elements for the MemoraDB project, including ASCII art logos and branding information that appears in application output.
-
-This component demonstrates attention to user experience details and provides a professional appearance for the database system during startup and operation.
-
-## 6. Testing Framework
-
-### 6.1 Test Infrastructure
-
-The testing framework (test_framework.c) provides a comprehensive infrastructure for validating all aspects of the MemoraDB system. The framework includes assertion macros, test execution management, and result reporting capabilities.
-
-**Framework Features:**
-- Assertion macros for various test conditions
-- Test execution tracking and reporting
-- Colored output for improved readability
-- Summary reporting across all test suites
-
-The test framework is designed to be simple to use while providing comprehensive coverage of system functionality.
-
-### 6.2 Unit Tests
-
-The project includes comprehensive unit tests for all major components:
-
-**Hash Table Tests** (test_hashtable.c): Validates hash table operations including insertion, deletion, lookup, and resizing functionality.
-
-**List Tests** (test_list.c): Tests linked list operations and ensures proper memory management and data integrity.
-
-**Parser Tests** (test_parser.c): Validates RESP protocol parsing for all supported data types and error conditions.
-
-Each unit test suite focuses on a specific component and provides thorough coverage of normal operations, edge cases, and error conditions.
-
-### 6.3 Integration Tests
-
-**Integration Test Suite** (integration_test.c): Tests the interaction between different system components to ensure proper system-level functionality.
-
-**Ping-Echo Tests** (test_ping_echo.c): Validates client-server communication patterns and protocol compliance through basic command testing.
-
-Integration tests ensure that the individual components work together correctly and that the system behaves properly under realistic usage scenarios.
-
-## 7. Build System and Development
-
-### 7.1 Makefile Configuration
-
-The project uses a sophisticated Makefile that manages compilation of all components and provides convenient targets for development and testing operations.
-
-**Build Targets:**
-- `all`: Compiles both client and server executables
-- `test`: Compiles all test files with appropriate dependencies
-- `run-tests`: Executes the complete test suite with formatted output
-- `headers`: Refreshes author/date header metadata in C/C headers via build.sh
-- `clean`: Removes all generated binaries and temporary files
-
-The Makefile includes intelligent dependency management and handles the different compilation requirements for various components.
-
-### 7.2 Build Script
-
-The build script (build.sh) provides automated project management capabilities including header updates, author tracking, and optional compilation. The script integrates with Git to track changes and maintain project metadata.
-
-**Script Capabilities:**
-- Automatic detection of modified files
-- Header information updates with author and date tracking
-- Interactive compilation prompting
-- Git integration for project management
-
-### 7.3 Development Workflow
-
-The development environment is configured for efficient development with proper tooling and automation. The workflow includes:
-
-**Code Organization**: Clear module separation with well-defined interfaces
-**Testing Integration**: Automated test execution as part of the build process
-**Documentation**: Comprehensive inline documentation and external documentation
-**Version Control**: Git-based workflow with proper branching and tagging
-
-## 8. Network Protocol Implementation
-
-### 8.1 RESP Protocol Support
-
-MemoraDB implements the complete RESP (Redis Serialization Protocol) specification, ensuring full compatibility with Redis clients. The implementation handles all RESP data types and maintains strict protocol compliance.
-
-**Supported RESP Types:**
-- Simple Strings: For basic text responses
-- Errors: For error condition reporting
-- Integers: For numeric responses
-- Bulk Strings: For binary-safe string data
-- Arrays: For complex multi-element responses
-
-The protocol implementation includes proper handling of edge cases, error conditions, and streaming data scenarios.
-
-### 8.2 Client-Server Communication
-
-The communication system supports efficient client-server interaction through optimized network handling and protocol processing. The implementation includes:
-
-**Connection Management**: Efficient handling of multiple concurrent connections
-**Request Processing**: Optimized parsing and execution of client requests
-**Response Generation**: Fast serialization and transmission of responses
-**Error Handling**: Comprehensive error detection and recovery mechanisms
-
-## 9. Memory Management
-
-MemoraDB employs careful memory management strategies to ensure reliable operation and prevent memory leaks. The system includes:
-
-**Allocation Tracking**: All memory allocations are tracked and properly freed
-**Object Lifecycle Management**: Clear ownership and lifecycle rules for all objects
-**Error Recovery**: Proper cleanup in error conditions to prevent resource leaks
-**Performance Optimization**: Memory allocation patterns optimized for performance
-
-The memory management approach ensures that the system remains stable and efficient even under heavy load conditions.
-
-## 10. Contributing, Issues, and Pull Requests
-
-We welcome contributions to MemoraDB! If you'd like to help improve the project, please review the following guidelines:
-
-### 10.1 Pull Requests (PRs)
-
-- Before submitting any PR, make sure it follows the conventions outlined in the project's [**CONTRIBUTIONS TEMPLATE**](./CONTRIBUTING.md) and [**PR TEMPLATE**](.github/PR_TEMPLATE.md).
-- The maintainers will review your PR, provide feedback, and merge once approved.
-
-### 10.2 Issues
-
-- **Issuing Guidelines:** When opening an issue, please ensure it follows the project's **ISSUE TEMPLATE** (`.github/ISSUE_TEMPLATE`) for consistency and clarity.
-- **Bug Reports:** Refer to the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md).
-- **Feature Requests:** Refer to the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md).
-- **Questions & Discussions:** Use the [Discussions](https://github.com/The-HaiKaw-Pr0tocol/MemoraDB/discussions) tab for general questions, design proposals, or technical Q&A.
-
-Your feedback and contributions help make MemoraDB better—thank you for participating!
+---
 
 > © 2025 The HaiKaw Protocol. All rights reserved.
