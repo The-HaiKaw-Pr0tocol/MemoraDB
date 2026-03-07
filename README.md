@@ -372,8 +372,11 @@ The global hash table `HASHTABLE[TABLE_SIZE]` is guarded by a **single `pthread_
   <i>Figure 3: Hash table memory layout : A fixed 1024-bucket array with separate-chaining entries and a polymorphic value union.</i>
 </div>
 
+<<<<<<< HEAD
 <br/>
 
+=======
+>>>>>>> f9b265bfe6b5e09765e4614395748d1c990aa761
 The primary data store is a statically-sized, open-addressed hash table defined in `hashTable.c`. The top-level symbol is a plain C array of entry pointers:
 
 ```c
@@ -430,8 +433,11 @@ The `length` field is maintained incrementally by every push and pop, so `list_l
   <i>Figure 4: Lazy TTL expiration : Expired keys are evicted at read time rather than by a background sweep thread.</i>
 </div>
 
+<<<<<<< HEAD
 <br/>
 
+=======
+>>>>>>> f9b265bfe6b5e09765e4614395748d1c990aa761
 When a client issues `SET key value PX <ms>`, the server computes `expiry = current_millis() + ms` and stores it in the `Entry`'s `expiry` field. A value of `0` means "no TTL : Live Forever."
 
 Expiry is **lazy**: there is no dedicated reaper thread, no periodic scan, and no timer wheel. Instead, every access path checks the clock:
@@ -453,10 +459,6 @@ The bundled CLI client (`src/client/client.c`) connects to `127.0.0.1:6379` over
 - **Line editing** via the bundled linenoise library (arrow keys, Ctrl-A/E, etc.).
 - **Persistent history** across sessions (`history.c`).
 - **RESP response parsing**: raw RESP bytes are decoded into human-readable output by `parse_and_display_resp()`.
-
-```bash
-./client              #- connect to default host:port -#
-```
 
 Type `exit` or press `Ctrl-C` to disconnect.
 
