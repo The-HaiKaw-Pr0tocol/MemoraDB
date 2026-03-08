@@ -2,17 +2,17 @@
  * =====================================================
  * MemoraDB - In-Memory Database System
  * =====================================================
- * 
+ *
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : shady0503
- * Last Update               : 02/10/2026
+ * Last Updating Author      : m0hamed541
+ * Last Update               : 03/08/2026
  * Version                   : 1.0.0
- * 
+ *
  * Description:
  *  Main MemoraDB server.
- * 
- * 
+ *
+ *
  * Copyright (c) 2025 MemoraDB Project
  * =====================================================
  */
@@ -33,7 +33,7 @@ void *handle_client(void *arg) {
 
     char buffer[BUFFER_SIZE];
     char *tokens[MAX_TOKENS];
-    
+
     while (1) {
         ssize_t bytes = recv(client_fd, buffer, sizeof(buffer)-1, 0);
         if (bytes <= 0) {
@@ -75,6 +75,8 @@ int main() {
 
     log_message(LOG_INFO, "MemoraDB Server started successfully.");
 
+    hashtable_lock_init();
+
     int server_fd;
     socklen_t client_addr_len;
     struct sockaddr_in client_addr;
@@ -84,10 +86,9 @@ int main() {
         log_message(LOG_ERROR, "Socket creation failed: %s", strerror(errno));
         return 1;
     }
-    
+
     int one = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-
 
     int port = parse_port_env("MEMORADB_PORT", 6379);
     const char *bind_ip = getenv("MEMORADB_BIND");
@@ -125,16 +126,16 @@ int main() {
 
         ClientContext *client_context = malloc(sizeof(ClientContext));
         if(!client_context){
-          log_message(LOG_ERROR, "Failed to allocate client context");
-          close(client_fd);
-          continue;
+            log_message(LOG_ERROR, "Failed to allocate client context");
+            close(client_fd);
+            continue;
         }
 
         client_context->client_fd = client_fd;
 
         if (inet_ntop(AF_INET, &client_addr.sin_addr, client_context->ip_address, sizeof(client_context->ip_address)) == NULL) {
-          log_message(LOG_ERROR, "Failed to convert client IP: %s", strerror(errno));
-          strncpy(client_context->ip_address, "unknown", sizeof(client_context->ip_address));
+            log_message(LOG_ERROR, "Failed to convert client IP: %s", strerror(errno));
+            strncpy(client_context->ip_address, "unknown", sizeof(client_context->ip_address));
         }
 
         client_context->port = ntohs(client_addr.sin_port);

@@ -2,16 +2,16 @@
  * =====================================================
  * MemoraDB - In-Memory Database System
  * =====================================================
- * 
+ *
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
  * Last Updating Author      : youssefbouraoui1
  * Last Update               : 02/08/2026
  * Version                   : 1.0.0
- * 
+ *
  * Description:
  *  Header for simple hash table for MemoraDB key-value storage.
- * 
+ *
  * Copyright (c) 2025 MemoraDB Project
  * =====================================================
  */
@@ -47,13 +47,16 @@ typedef struct Entry {
 /* ============================================================ */
 
 extern Entry *HASHTABLE[TABLE_SIZE];
+extern pthread_mutex_t bucket_mutex[TABLE_SIZE];
+
+void hashtable_lock_init(void);
 
 /**
  * @brief Hash function to compute the index for a given key.
- * 
+ *
  * This function uses a simple hash algorithm to convert a string key
  * into an unsigned integer index suitable for use in the hash table.
- * 
+ *
  * @param key The key to hash.
  * @return The computed hash index.
  */
@@ -61,7 +64,7 @@ unsigned int hash(const char *key);
 
 /**
  * @brief Set a string value in the hash table.
- * 
+ *
  * @param key The key to set.
  * @param value The string value to associate with the key.
  * @param px Expiry time in milliseconds (0 for no expiry).
@@ -70,7 +73,7 @@ void set_value(const char *key, const char *value, long long px);
 
 /**
  * @brief Get a string value from the hash table.
- * 
+ *
  * @param key The key to retrieve.
  * @return The string value, or NULL if not found or expired.
  */
@@ -106,7 +109,7 @@ long long current_millis(void);
 
 /**
  * @brief Get the type of the value at key.
- * 
+ *
  * @param key The key to lookup.
  * @return "string", "list", or "none" if not found.
  */
