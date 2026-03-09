@@ -5,8 +5,8 @@
  * 
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
- * Last Updating Author      : shady0503
- * Last Update               : 02/10/2026
+ * Last Updating Author      : m0hamed541
+ * Last Update               : 02/28/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -16,12 +16,59 @@
  * Copyright (c) 2025 MemoraDB Project
  * =====================================================
  */
-
 #include "server.h"
+#include "signal.h"
 #include "../utils/log.h"
 #include "../utils/hashTable.h"
 #include "../parser/parser.h"
 #include "../utils/logo.h"
+
+volatile sig_atomic_t server_running = 1;
+
+typedef struct ThreadNode {
+    pthread_t thread;
+    struct ThreadNode *next;
+} ThreadNode;
+
+static ThreadNode *thread_list = NULL;
+static pthread_mutex_t thread_list_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int server_fd = -1;
+
+void signal_handler(int signum) {
+    if (signum == SIGTERM || signum == SIGINT) {
+        server_running = 0;
+        if (server_fd != -1) {
+            shutdown(server_fd, SHUT_RDWR);
+            close(server_fd);
+            server_fd = -1;
+        }
+    }
+}
+
+static void register_thread(pthread_t thread) {
+    ThreadNode *node = malloc(sizeof(ThreadNode));
+    if (!node) return;
+    node->thread = thread;
+    node->next = NULL;
+    pthread_mutex_lock(&thread_list_mutex);
+    node->next = thread_list;
+    thread_list = node;
+    pthread_mutex_unlock(&thread_list_mutex);
+}
+
+static void join_all_threads(void) {
+    pthread_mutex_lock(&thread_list_mutex);
+    ThreadNode *node = thread_list;
+    thread_list = NULL;
+    pthread_mutex_unlock(&thread_list_mutex);
+
+    while (node) {
+        pthread_join(node->thread, NULL);
+        ThreadNode *next = node->next;
+        free(node);
+        node = next;
+    }
+}
 
 void *handle_client(void *arg) {
     ClientContext *client_context = (ClientContext*)arg;
@@ -33,7 +80,7 @@ void *handle_client(void *arg) {
 
     char buffer[BUFFER_SIZE];
     char *tokens[MAX_TOKENS];
-    
+
     while (1) {
         ssize_t bytes = recv(client_fd, buffer, sizeof(buffer)-1, 0);
         if (bytes <= 0) {
@@ -48,6 +95,7 @@ void *handle_client(void *arg) {
         dispatch_command(client_fd, tokens, token_count);
     }
 
+    shutdown(client_fd, SHUT_RDWR);
     close(client_fd);
     log_message(LOG_INFO, "Client %s disconnected on port %d", client_ip, client_port);
     return NULL;
@@ -67,6 +115,14 @@ static int parse_port_env(const char *name, int def_port) {
 
 #ifndef TESTING
 int main() {
+    
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
+
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
@@ -84,7 +140,7 @@ int main() {
         log_message(LOG_ERROR, "Socket creation failed: %s", strerror(errno));
         return 1;
     }
-    
+
     int one = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 
@@ -110,31 +166,33 @@ int main() {
     int connection_backlog = 5;
     if (listen(server_fd, connection_backlog) != 0) {
         log_message(LOG_ERROR, "Listen failed: %s", strerror(errno));
+        close(server_fd);
         return 1;
     }
 
     log_message(LOG_INFO, "Awaiting connections...");
 
-    for(;;) {
+    while (server_running) {
         client_addr_len = sizeof(client_addr);
         int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
         if (client_fd < 0) {
+            if (errno == EINTR || errno == EBADF || errno == EINVAL) break;
             log_message(LOG_ERROR, "Accept failed: %s", strerror(errno));
             continue;
         }
 
         ClientContext *client_context = malloc(sizeof(ClientContext));
         if(!client_context){
-          log_message(LOG_ERROR, "Failed to allocate client context");
-          close(client_fd);
-          continue;
+            log_message(LOG_ERROR, "Failed to allocate client context");
+            close(client_fd);
+            continue;
         }
 
         client_context->client_fd = client_fd;
 
         if (inet_ntop(AF_INET, &client_addr.sin_addr, client_context->ip_address, sizeof(client_context->ip_address)) == NULL) {
-          log_message(LOG_ERROR, "Failed to convert client IP: %s", strerror(errno));
-          strncpy(client_context->ip_address, "unknown", sizeof(client_context->ip_address));
+            log_message(LOG_ERROR, "Failed to convert client IP: %s", strerror(errno));
+            strncpy(client_context->ip_address, "unknown", sizeof(client_context->ip_address));
         }
 
         client_context->port = ntohs(client_addr.sin_port);
@@ -148,11 +206,21 @@ int main() {
             free(client_context);
             continue;
         }
-        pthread_detach(thread);
+        register_thread(thread);
     }
 
     log_message(LOG_INFO, "Server shutting down...");
-    close(server_fd);
+
+    if (server_fd != -1) {
+        shutdown(server_fd, SHUT_RDWR);
+        close(server_fd);
+        server_fd = -1;
+    }
+
+    join_all_threads();
+    pthread_mutex_destroy(&thread_list_mutex);
+
+    log_message(LOG_INFO, "Server shutdown complete.");
     return 0;
 }
 #endif
