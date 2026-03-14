@@ -5,8 +5,8 @@
  * 
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : youssefbouraoui1
- * Last Update               : 02/08/2026
+ * Last Updating Author      : shady0503
+ * Last Update               : 03/14/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -77,13 +77,6 @@ void set_value(const char *key, const char *value, long long px);
 const char *get_value(const char *key);
 
 /**
- * Get an existing list or create a new one
- * @param key The key to lookup or create
- * @return Pointer to the list, NULL on error
- */
-List *get_or_create_list(const char *key);
-
-/**
  * Get the list at key if it exists and is a list.
  * @param key The key to lookup
  * @return Pointer to the list, or NULL if not found or not a list
@@ -111,5 +104,37 @@ long long current_millis(void);
  * @return "string", "list", or "none" if not found.
  */
 const char *get_type(const char *key);
+
+/**
+ * Atomically push one or more elements to the left of a list.
+ * Creates the list if it does not exist.
+ *
+ * @param key The list key.
+ * @param values Values to push.
+ * @param value_count Number of values.
+ * @return New list length, or 0 on error.
+ */
+size_t db_lpush_atomic(const char *key, char *values[], int value_count);
+
+/**
+ * Atomically push one or more elements to the right of a list.
+ * Creates the list if it does not exist.
+ *
+ * @param key The list key.
+ * @param values Values to push.
+ * @param value_count Number of values.
+ * @return New list length, or 0 on error.
+ */
+size_t db_rpush_atomic(const char *key, char *values[], int value_count);
+
+/**
+ * Atomically pop one element from list head, waiting up to timeout_ms.
+ * timeout_ms <= 0 means immediate return with no wait.
+ *
+ * @param key The list key.
+ * @param timeout_ms Timeout in milliseconds.
+ * @return Popped element (caller frees) or NULL if no element/timeout/error.
+ */
+char *db_blpop_wait_atomic(const char *key, long long timeout_ms);
 
 #endif // HASHTABLE_H

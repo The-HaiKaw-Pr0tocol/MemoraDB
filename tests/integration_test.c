@@ -5,8 +5,8 @@
  * 
  * File                      : tests/integration_test.c
  * Module                    : Network Integration Tests
- * Last Updating Author      : sch0penheimer
- * Last Update               : 2025/31/07
+ * Last Updating Author      : shady0503
+ * Last Update               : 03/14/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -17,7 +17,6 @@
  * =====================================================
  */
 
-#include <assert.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -25,12 +24,34 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <pthread.h>
+#include <sys/time.h>
 #include "test_framework.h"
 
 #define TEST_PORT 6379
 #define BUFFER_SIZE 1024
 
 static pid_t server_pid = -1;
+
+typedef struct {
+    int client_fd;
+    char buffer[BUFFER_SIZE];
+    int received;
+} recv_ctx_t;
+
+static void set_socket_recv_timeout(int client_fd, int timeout_ms) {
+    struct timeval timeout;
+    timeout.tv_sec = timeout_ms / 1000;
+    timeout.tv_usec = (timeout_ms % 1000) * 1000;
+    setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+}
+
+static void *recv_once_thread(void *arg) {
+    recv_ctx_t *ctx = (recv_ctx_t *)arg;
+    memset(ctx->buffer, 0, sizeof(ctx->buffer));
+    ctx->received = recv(ctx->client_fd, ctx->buffer, sizeof(ctx->buffer) - 1, 0);
+    return NULL;
+}
 
 void cleanup_processes() {
     if (server_pid > 0) {
@@ -42,6 +63,7 @@ void cleanup_processes() {
 }
 
 void signal_handler(int sig) {
+    (void)sig;
     cleanup_processes();
     exit(1);
 }
@@ -177,6 +199,68 @@ void test_list_operations_integration() {
     TEST_SUCCESS("List operations network integration test passed");
 }
 
+void test_blpop_timeout_zero_integration() {
+    printf("Testing BLPOP timeout=0 immediate return...\n");
+
+    int client_fd = create_test_client();
+    if (client_fd == -1) {
+        TEST_ERROR("Failed to connect to server for BLPOP timeout=0 test");
+        return;
+    }
+
+    char blpop_cmd[] = "*3\r\n$5\r\nBLPOP\r\n$16\r\nblpop_timeout_0k\r\n$1\r\n0\r\n";
+    send(client_fd, blpop_cmd, strlen(blpop_cmd), 0);
+
+    char buffer[BUFFER_SIZE] = {0};
+    recv(client_fd, buffer, sizeof(buffer), 0);
+    TEST_ASSERT(strstr(buffer, "$-1") != NULL, "BLPOP timeout=0 should return nil immediately");
+
+    close(client_fd);
+    TEST_SUCCESS("BLPOP timeout=0 integration test passed");
+}
+
+void test_blpop_unblocks_on_lpush_integration() {
+    printf("Testing BLPOP unblocks when LPUSH arrives...\n");
+
+    int blocker_fd = create_test_client();
+    int pusher_fd = create_test_client();
+    if (blocker_fd == -1 || pusher_fd == -1) {
+        if (blocker_fd != -1) close(blocker_fd);
+        if (pusher_fd != -1) close(pusher_fd);
+        TEST_ERROR("Failed to connect clients for BLPOP unblock test");
+        return;
+    }
+
+    set_socket_recv_timeout(blocker_fd, 5000);
+    set_socket_recv_timeout(pusher_fd, 5000);
+
+    char blpop_cmd[] = "*3\r\n$5\r\nBLPOP\r\n$11\r\nblpop_wakek\r\n$1\r\n2\r\n";
+    send(blocker_fd, blpop_cmd, strlen(blpop_cmd), 0);
+
+    recv_ctx_t recv_ctx = { .client_fd = blocker_fd, .received = 0 };
+    pthread_t recv_thread;
+    pthread_create(&recv_thread, NULL, recv_once_thread, &recv_ctx);
+
+    usleep(200 * 1000);
+
+    char lpush_cmd[] = "*3\r\n$5\r\nLPUSH\r\n$11\r\nblpop_wakek\r\n$6\r\nvalue1\r\n";
+    send(pusher_fd, lpush_cmd, strlen(lpush_cmd), 0);
+
+    char push_resp[BUFFER_SIZE] = {0};
+    recv(pusher_fd, push_resp, sizeof(push_resp), 0);
+    TEST_ASSERT(strstr(push_resp, ":1") != NULL, "LPUSH should acknowledge pushed length");
+
+    pthread_join(recv_thread, NULL);
+
+    TEST_ASSERT(recv_ctx.received > 0, "BLPOP client should receive a response");
+    TEST_ASSERT(strstr(recv_ctx.buffer, "blpop_wakek") != NULL, "BLPOP response should include list key");
+    TEST_ASSERT(strstr(recv_ctx.buffer, "value1") != NULL, "BLPOP response should include pushed element");
+
+    close(blocker_fd);
+    close(pusher_fd);
+    TEST_SUCCESS("BLPOP unblock integration test passed");
+}
+
 int main() {
     init_test_framework();
     printf("=== Network Integration Tests ===\n");
@@ -198,6 +282,8 @@ int main() {
     //-- Run tests --//
     test_set_get_integration();
     test_list_operations_integration();
+    test_blpop_timeout_zero_integration();
+    test_blpop_unblocks_on_lpush_integration();
 
     //-- Clean up --//
     cleanup_processes();

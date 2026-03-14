@@ -5,8 +5,8 @@
  * 
  * File                      : src/parser/parser.c
  * Module                    : RESP Protocol Parser
- * Last Updating Author      : youssefbouraoui1
- * Last Update               : 02/08/2026
+ * Last Updating Author      : shady0503
+ * Last Update               : 03/14/2026
  * Version                   : 1.0.0
  * 
  * Description:
@@ -22,7 +22,6 @@
 #include "parser.h"
 #include "../utils/hashTable.h"
 #include <stdio.h>
-#include <stdbool.h>
 
 int parse_command(char * input, char * tokens[], int max_tokens){
     int counter = 0;
@@ -114,20 +113,11 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         if (token_count < 3) {
             dprintf(client_fd, "[MemoraDB: WARN] RPUSH needs key and at least one value\r\n");
         } else {
-            List *list = get_or_create_list(tokens[1]);
-            if (!list) {
+            size_t total_elements = db_rpush_atomic(tokens[1], &tokens[2], token_count - 2);
+            if (total_elements == 0) {
                 dprintf(client_fd, "[MemoraDB: ERROR] could not create list\r\n");
                 break;
             }
-
-            size_t total_elements = 0;
-            for (int i = 2; i < token_count; i++) {
-                size_t new_len = list_rpush(list, tokens[i]);
-                if (new_len > total_elements) {
-                    total_elements = new_len;
-                }
-            }
-
             dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
@@ -135,20 +125,11 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
         if (token_count < 3) {
             dprintf(client_fd, "[MemoraDB: ERROR] wrong number of arguments for 'LPUSH'\r\n");
         } else {
-            List *list = get_or_create_list(tokens[1]);
-            if (!list) {
+            size_t total_elements = db_lpush_atomic(tokens[1], &tokens[2], token_count - 2);
+            if (total_elements == 0) {
                 dprintf(client_fd, "[MemoraDB: ERROR] could not create list\r\n");
                 break;
             }
-
-            size_t total_elements = 0;
-            for (int i = 2 ; i < token_count ; i++) {
-                size_t new_len = list_lpush(list, tokens[i]);
-                if (new_len > total_elements) {
-                    total_elements = new_len;
-                }
-            }
-
             dprintf(client_fd, ":%zu\r\n", total_elements);
         }
         break;
@@ -228,31 +209,16 @@ void dispatch_command(int client_fd, char * tokens[], int token_count){
 
         const char *list_name = tokens[1];
         double timeout_sec = atof(tokens[2]);
-        long long start_time = current_millis();
-        long long timeout_ms = (long long)(timeout_sec * 1000);
+        long long timeout_ms = timeout_sec > 0.0 ? (long long)(timeout_sec * 1000.0) : 0;
 
-        List *list = get_list_if_exists(list_name);
-        char *element = NULL;
-
-        while (1) {
-            element = lpop_element(list);
-            if (element != NULL) {
-                dprintf(client_fd, "*2\r\n$%lu\r\n%s\r\n$%lu\r\n%s\r\n",
-                        strlen(list_name), list_name,
-                        strlen(element), element);
-                free(element);
-                break;
-            }
-
-            long long elapsed = current_millis() - start_time;
-
-            if (timeout_sec == 0.0 || elapsed < timeout_ms) {
-                usleep(100 * 1000);
-                continue;
-            }
-
+        char *element = db_blpop_wait_atomic(list_name, timeout_ms);
+        if (element != NULL) {
+            dprintf(client_fd, "*2\r\n$%lu\r\n%s\r\n$%lu\r\n%s\r\n",
+                    strlen(list_name), list_name,
+                    strlen(element), element);
+            free(element);
+        } else {
             dprintf(client_fd, "$-1\r\n");
-            break;
         }
         break;
     }

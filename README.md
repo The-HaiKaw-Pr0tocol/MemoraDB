@@ -295,7 +295,7 @@ All commands below are implemented and tested. RESP encoding/decoding is handled
 | `LRANGE` | `LRANGE <key> <start> <stop>` | Array               | Returns elements in `[start, stop]`. Negative indices supported.         |
 | `LLEN`   | `LLEN <key>`                  | Integer             | Returns list length, or `0` if key missing.                              |
 | `LPOP`   | `LPOP <key> [count]`          | Bulk String / Array | Pops from head. With `count`, returns an array.                          |
-| `BLPOP`  | `BLPOP <key> <timeout>`       | Array / Null        | Blocking pop. `timeout=0` blocks indefinitely. Returns `[key, element]`. |
+| `BLPOP`  | `BLPOP <key> <timeout>`       | Array / Null        | Blocking pop with timeout. `timeout=0` returns null immediately. Returns `[key, element]` on success. |
 
 </div>
 
@@ -355,7 +355,7 @@ MemoraDB follows a **thread-per-connection** model. There is no connection pooli
 
 The global hash table `HASHTABLE[TABLE_SIZE]` is guarded by a **single `pthread_mutex_t`**. This is _not_ a per-bucket lock: every read or write to the store acquires the same mutex, holds it for the duration of the operation (including any `malloc` / `free` inside), and releases it on return. The design prioritizes correctness and simplicity over throughput.
 
-**Blocking operations** deserve special mention. `BLPOP` puts the calling thread into a `pthread_cond_timedwait` loop: it releases the global mutex, sleeps until a condition variable is signaled (by an `LPUSH` / `RPUSH` on the same key) or the timeout elapses, then reacquires the mutex before returning.
+**Blocking operations** deserve special mention. `BLPOP` uses a `pthread_cond_timedwait` loop with predicate re-checking under the global mutex: the waiting thread sleeps until it is signaled by a list push or the timeout elapses, then rechecks the target key and pops if data is available.
 
 > [!NOTE] 
 > The single-mutex design is correct but serializes all storage access. Under high concurrency this becomes a bottleneck. Per-bucket or striped locking is a planned improvement.
