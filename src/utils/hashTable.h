@@ -5,8 +5,8 @@
  *
  * File                      : src/utils/hashTable.h
  * Module                    : Hash Table
- * Last Updating Author      : youssefbouraoui1
- * Last Update               : 02/08/2026
+ * Last Updating Author      : m0hamed541
+ * Last Update               : 03/16/2026
  * Version                   : 1.0.0
  *
  * Description:
@@ -49,6 +49,16 @@ typedef struct Entry {
 extern Entry *HASHTABLE[TABLE_SIZE];
 extern pthread_mutex_t bucket_mutex[TABLE_SIZE];
 
+/**
+ * @brief Initialize all mutexes for the hash table buckets.
+ *
+ * This function iterates overy every bycket in the hash table
+ * initializes its associated mutex.
+ * 
+ * @note Not thread safe and must be called during single threaded
+ * initialization.
+ * 
+ */
 void hashtable_lock_init(void);
 
 /**
