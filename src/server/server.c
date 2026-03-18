@@ -2,17 +2,17 @@
  * =====================================================
  * MemoraDB - In-Memory Database System
  * =====================================================
- * 
+ *
  * File                      : src/server/server.c
  * Module                    : MemoraDB Server
  * Last Updating Author      : m0hamed541
- * Last Update               : 02/28/2026
+ * Last Update               : 03/08/2026
  * Version                   : 1.0.0
- * 
+ *
  * Description:
  *  Main MemoraDB server.
- * 
- * 
+ *
+ *
  * Copyright (c) 2025 MemoraDB Project
  * =====================================================
  */
@@ -131,6 +131,8 @@ int main() {
 
     log_message(LOG_INFO, "MemoraDB Server started successfully.");
 
+    hashtable_lock_init();
+
     int server_fd;
     socklen_t client_addr_len;
     struct sockaddr_in client_addr;
@@ -143,7 +145,6 @@ int main() {
 
     int one = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-
 
     int port = parse_port_env("MEMORADB_PORT", 6379);
     const char *bind_ip = getenv("MEMORADB_BIND");
